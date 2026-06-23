@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS expense (
     department_id BIGINT          NOT NULL COMMENT '所属部门ID',
     total_amount  DECIMAL(10,2)   NOT NULL COMMENT '总金额',
     reason        VARCHAR(500)    DEFAULT NULL COMMENT '报销原因',
-    status        TINYINT         NOT NULL DEFAULT 0 COMMENT '状态: 0-草稿 1-待审批 2-审批通过 3-审批拒绝 4-已付款',
+    status        TINYINT         NOT NULL DEFAULT 0 COMMENT '状态: 0-草稿 1-待主管审批 2-主管驳回 3-待财务审核 4-财务驳回 5-待付款 6-已付款 7-已归档',
     create_time   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time   DATETIME        DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     deleted       TINYINT         NOT NULL DEFAULT 0 COMMENT '逻辑删除',

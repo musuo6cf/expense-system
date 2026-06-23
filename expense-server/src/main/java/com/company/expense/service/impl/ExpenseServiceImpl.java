@@ -86,7 +86,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public Page<ExpenseVO> pageExpenses(Integer page, Integer size, Integer status, String keyword, Long userId) {
         LambdaQueryWrapper<Expense> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Expense::getApplicantId, userId);
+        // FINANCE and ADMIN see all expenses; employees/managers see only their own
+        if (!isFinanceOrAdmin(userId)) {
+            wrapper.eq(Expense::getApplicantId, userId);
+        }
         if (status != null) {
             wrapper.eq(Expense::getStatus, status);
         }
@@ -202,6 +205,19 @@ public class ExpenseServiceImpl implements ExpenseService {
         int targetStatus = isManager(userId) ? Expense.STATUS_PENDING_FINANCE : Expense.STATUS_PENDING_MANAGER;
         expense.setStatus(targetStatus);
         expenseMapper.updateById(expense);
+    }
+
+    private boolean isFinanceOrAdmin(Long userId) {
+        LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
+        urWrapper.eq(SysUserRole::getUserId, userId);
+        List<Long> roleIds = sysUserRoleMapper.selectList(urWrapper).stream()
+                .map(SysUserRole::getRoleId)
+                .collect(Collectors.toList());
+        if (roleIds.isEmpty()) return false;
+        return sysRoleMapper.selectCount(
+                new LambdaQueryWrapper<SysRole>().in(SysRole::getId, roleIds)
+                        .in(SysRole::getRoleCode, List.of("FINANCE", "ADMIN"))
+        ) > 0;
     }
 
     private boolean isManager(Long userId) {

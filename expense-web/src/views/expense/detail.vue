@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { getExpenseById, getAttachments } from '@/api/expense'
+import { getExpenseById, getAttachments, downloadAttachment } from '@/api/expense'
 
 const route = useRoute()
 const expenseId = String(route.params.id)
@@ -69,8 +69,10 @@ onMounted(async () => {
       <template #header><span>凭证附件</span></template>
       <div v-if="attachments.length === 0" style="color: #909399">暂无附件</div>
       <div v-else v-for="att in attachments" :key="att.id" style="margin-bottom: 8px">
-        <span>{{ att.fileName }}</span>
-        <span style="color: #909399; margin-left: 8px; font-size: 12px">
+        <el-button link type="primary" size="small" @click="downloadAttachment(att.id)">
+          {{ att.fileName }}
+        </el-button>
+        <span style="color: #909399; font-size: 12px">
           {{ (att.fileSize / 1024).toFixed(1) }}KB · {{ att.uploadTime }}
         </span>
       </div>

@@ -1,0 +1,13 @@
+﻿node_modules/
+dist/
+target/
+*.class
+*.jar
+*.log
+.idea/
+*.iml
+.vscode/
+uploads/
+!uploads/.gitkeep
+.env
+.env.local

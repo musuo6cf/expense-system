@@ -21,6 +21,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/auth/login",
                         "/auth/logout",
+                        "/attachment/download/**",
                         "/doc.html",
                         "/swagger-resources/**",
                         "/webjars/**",

@@ -125,6 +125,15 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachmentMapper.deleteById(id);
     }
 
+    @Override
+    public Attachment getAttachment(Long id) {
+        Attachment attachment = attachmentMapper.selectById(id);
+        if (attachment == null) {
+            throw new BusinessException(ResultCode.FILE_NOT_FOUND);
+        }
+        return attachment;
+    }
+
     private AttachmentVO toVO(Attachment attachment) {
         AttachmentVO vo = new AttachmentVO();
         vo.setId(attachment.getId());

@@ -26,6 +26,7 @@ export async function getDashboardStats(roles: string[]) {
     myCount: (myRes as any).data?.total || 0,
     approvalCount,
     financeCount,
+    paymentCount,
     paidCount: (paidRes as any).data?.total || 0,
     recentRecords: (recentRes as any).data?.records || []
   }

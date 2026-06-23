@@ -3,12 +3,14 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getApprovalDetail, passApproval, rejectApproval } from '@/api/approval'
+import { getAttachments, downloadAttachment } from '@/api/expense'
 
 const route = useRoute()
 const router = useRouter()
 const expenseId = String(route.params.id)
 
 const detail = ref<any>(null)
+const attachments = ref<any[]>([])
 const comment = ref('')
 const submitting = ref(false)
 
@@ -29,6 +31,8 @@ function getStatusTag(status: number) {
 async function fetchDetail() {
   const res: any = await getApprovalDetail(expenseId)
   detail.value = res.data
+  const attRes: any = await getAttachments(expenseId)
+  attachments.value = attRes.data || []
 }
 
 async function handlePass() {
@@ -85,6 +89,20 @@ onMounted(() => fetchDetail())
         <el-descriptions-item label="创建时间">{{ detail.createTime }}</el-descriptions-item>
         <el-descriptions-item label="报销原因" :span="2">{{ detail.reason || '-' }}</el-descriptions-item>
       </el-descriptions>
+    </el-card>
+
+    <!-- Attachments -->
+    <el-card style="margin-bottom: 16px">
+      <template #header><span>凭证附件</span></template>
+      <div v-if="attachments.length === 0" style="color: #909399">暂无附件</div>
+      <div v-else v-for="att in attachments" :key="att.id" style="margin-bottom: 8px">
+        <el-button link type="primary" size="small" @click="downloadAttachment(att.id)">
+          {{ att.fileName }}
+        </el-button>
+        <span style="color: #909399; font-size: 12px">
+          {{ (att.fileSize / 1024).toFixed(1) }}KB · {{ att.uploadTime }}
+        </span>
+      </div>
     </el-card>
 
     <!-- Approval History -->

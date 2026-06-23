@@ -53,3 +53,7 @@ export function getAttachments(expenseId: number) {
 export function deleteAttachment(id: number) {
   return request.delete(`/attachment/${id}`)
 }
+
+export function downloadAttachment(id: string) {
+  window.open(`${import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'}/attachment/download/${id}`, '_blank')
+}

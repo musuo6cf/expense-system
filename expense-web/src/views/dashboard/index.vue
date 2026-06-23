@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getDashboardStats, getChartData } from '@/api/dashboard'
 import * as echarts from 'echarts'
 
 const userStore = useUserStore()
+const isFinance = computed(() => userStore.roles.includes('FINANCE'))
 
+// Stats
 const myCount = ref(0)
 const approvalCount = ref(0)
 const financeCount = ref(0)
 const paidCount = ref(0)
+const paymentCount = ref(0)
 const recentRecords = ref<any[]>([])
 
+// Charts
 const trendChart = ref<HTMLDivElement>()
 const pieChart = ref<HTMLDivElement>()
 
@@ -34,26 +38,34 @@ function getStatusTag(status: number) {
 }
 
 async function loadStats() {
-  const stats = await getDashboardStats(userStore.roles)
-  myCount.value = stats.myCount
-  approvalCount.value = stats.approvalCount
-  financeCount.value = stats.financeCount
-  paidCount.value = stats.paidCount
-  recentRecords.value = stats.recentRecords
+  const stats: any = await getDashboardStats(userStore.roles)
+  myCount.value = stats.myCount || 0
+  approvalCount.value = stats.approvalCount || 0
+  financeCount.value = stats.financeCount || 0
+  paidCount.value = stats.paidCount || 0
+  paymentCount.value = stats.paymentCount || 0
+  recentRecords.value = stats.recentRecords || []
 }
 
+const monthLabels = ref<string[]>([])
+const monthAmounts = ref<number[]>([])
+const pieData = ref<any[]>([])
+
 async function loadCharts() {
-  const data = await getChartData()
+  const data: any = await getChartData()
+  monthLabels.value = data.months || []
+  monthAmounts.value = data.amounts || []
+  const statusData = data.statusMap || {}
 
   // Trend chart
   if (trendChart.value) {
     const trend = echarts.init(trendChart.value)
     trend.setOption({
       tooltip: { trigger: 'axis' },
-      xAxis: { type: 'category', data: data.months },
+      xAxis: { type: 'category', data: monthLabels.value },
       yAxis: { type: 'value', name: '金额(元)' },
       series: [{
-        data: data.amounts,
+        data: monthAmounts.value,
         type: 'line',
         smooth: true,
         areaStyle: { color: 'rgba(64,158,255,0.15)' },
@@ -67,20 +79,31 @@ async function loadCharts() {
   // Pie chart
   if (pieChart.value) {
     const pie = echarts.init(pieChart.value)
-    const pieData = Object.entries(data.statusMap)
-      .filter(([, v]) => v > 0)
-      .map(([k, v]) => ({ name: statusLabels[Number(k)] || k, value: v }))
+    if (isFinance.value) {
+      // Finance: only show finance-related statuses
+      pieData.value = [
+        { name: '待财务审核', value: statusData[3] || 0 },
+        { name: '待付款', value: statusData[5] || 0 },
+        { name: '已付款', value: statusData[6] || 0 }
+      ].filter(d => d.value > 0)
+    } else {
+      pieData.value = Object.entries(statusData)
+        .filter(([, v]) => (v as number) > 0)
+        .map(([k, v]) => ({ name: statusLabels[Number(k)] || k, value: v as number }))
+    }
     pie.setOption({
       tooltip: { trigger: 'item' },
       series: [{
         type: 'pie',
         radius: ['45%', '75%'],
         center: ['50%', '55%'],
-        data: pieData,
+        data: pieData.value,
         label: { show: true, formatter: '{b}\n{d}%' },
         itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 }
       }],
-      color: ['#909399', '#e6a23c', '#f56c6c', '#e6a23c', '#f56c6c', '#409eff', '#67c23a']
+      color: isFinance.value
+        ? ['#e6a23c', '#409eff', '#67c23a']
+        : ['#909399', '#e6a23c', '#f56c6c', '#e6a23c', '#f56c6c', '#409eff', '#67c23a']
     })
     window.addEventListener('resize', () => pie.resize())
   }
@@ -95,64 +118,109 @@ onMounted(async () => {
 
 <template>
   <div>
-    <!-- Welcome -->
     <div style="margin-bottom: 16px; font-size: 18px; color: #303133">
       欢迎回来，<strong>{{ userStore.realName }}</strong>
     </div>
 
-    <!-- Row 1: Stat cards -->
-    <el-row :gutter="16" style="margin-bottom: 16px">
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <div style="text-align: center">
-            <div style="color: #909399; font-size: 14px">我的报销数</div>
-            <div style="font-size: 32px; font-weight: bold; color: #409eff; margin: 8px 0">{{ myCount }}</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <div style="text-align: center">
-            <div style="color: #909399; font-size: 14px">待主管审批</div>
-            <div style="font-size: 32px; font-weight: bold; color: #e6a23c; margin: 8px 0">{{ approvalCount }}</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <div style="text-align: center">
-            <div style="color: #909399; font-size: 14px">待财务审核</div>
-            <div style="font-size: 32px; font-weight: bold; color: #e6a23c; margin: 8px 0">{{ financeCount }}</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <div style="text-align: center">
-            <div style="color: #909399; font-size: 14px">已付款</div>
-            <div style="font-size: 32px; font-weight: bold; color: #67c23a; margin: 8px 0">{{ paidCount }}</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- Finance Dashboard -->
+    <template v-if="isFinance">
+      <el-row :gutter="16" style="margin-bottom: 16px">
+        <el-col :span="8">
+          <el-card shadow="hover">
+            <div style="text-align: center">
+              <div style="color: #909399; font-size: 14px">待财务审核</div>
+              <div style="font-size: 32px; font-weight: bold; color: #e6a23c; margin: 8px 0">{{ financeCount }}</div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8">
+          <el-card shadow="hover">
+            <div style="text-align: center">
+              <div style="color: #909399; font-size: 14px">待付款</div>
+              <div style="font-size: 32px; font-weight: bold; color: #409eff; margin: 8px 0">{{ paymentCount }}</div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8">
+          <el-card shadow="hover">
+            <div style="text-align: center">
+              <div style="color: #909399; font-size: 14px">已付款</div>
+              <div style="font-size: 32px; font-weight: bold; color: #67c23a; margin: 8px 0">{{ paidCount }}</div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
 
-    <!-- Row 2 & 3: Charts -->
-    <el-row :gutter="16" style="margin-bottom: 16px">
-      <el-col :span="14">
-        <el-card>
-          <template #header><span>月报销趋势</span></template>
-          <div ref="trendChart" style="height: 320px" />
-        </el-card>
-      </el-col>
-      <el-col :span="10">
-        <el-card>
-          <template #header><span>报销状态占比</span></template>
-          <div ref="pieChart" style="height: 320px" />
-        </el-card>
-      </el-col>
-    </el-row>
+      <el-row :gutter="16" style="margin-bottom: 16px">
+        <el-col :span="14">
+          <el-card>
+            <template #header><span>本月审核金额趋势</span></template>
+            <div ref="trendChart" style="height: 320px" />
+          </el-card>
+        </el-col>
+        <el-col :span="10">
+          <el-card>
+            <template #header><span>报销单状态</span></template>
+            <div ref="pieChart" style="height: 320px" />
+          </el-card>
+        </el-col>
+      </el-row>
+    </template>
 
-    <!-- Row 4: Recent records -->
+    <!-- Non-Finance Dashboard -->
+    <template v-else>
+      <el-row :gutter="16" style="margin-bottom: 16px">
+        <el-col :span="6">
+          <el-card shadow="hover">
+            <div style="text-align: center">
+              <div style="color: #909399; font-size: 14px">我的报销数</div>
+              <div style="font-size: 32px; font-weight: bold; color: #409eff; margin: 8px 0">{{ myCount }}</div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card shadow="hover">
+            <div style="text-align: center">
+              <div style="color: #909399; font-size: 14px">待主管审批</div>
+              <div style="font-size: 32px; font-weight: bold; color: #e6a23c; margin: 8px 0">{{ approvalCount }}</div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card shadow="hover">
+            <div style="text-align: center">
+              <div style="color: #909399; font-size: 14px">待财务审核</div>
+              <div style="font-size: 32px; font-weight: bold; color: #e6a23c; margin: 8px 0">{{ financeCount }}</div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card shadow="hover">
+            <div style="text-align: center">
+              <div style="color: #909399; font-size: 14px">已付款</div>
+              <div style="font-size: 32px; font-weight: bold; color: #67c23a; margin: 8px 0">{{ paidCount }}</div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="16" style="margin-bottom: 16px">
+        <el-col :span="14">
+          <el-card>
+            <template #header><span>月报销趋势</span></template>
+            <div ref="trendChart" style="height: 320px" />
+          </el-card>
+        </el-col>
+        <el-col :span="10">
+          <el-card>
+            <template #header><span>报销状态占比</span></template>
+            <div ref="pieChart" style="height: 320px" />
+          </el-card>
+        </el-col>
+      </el-row>
+    </template>
+
+    <!-- Recent records -->
     <el-card>
       <template #header><span>最近报销记录</span></template>
       <el-table :data="recentRecords" stripe>
@@ -176,9 +244,3 @@ onMounted(async () => {
     </el-card>
   </div>
 </template>
-
-<style scoped>
-.el-row {
-  margin-bottom: 16px;
-}
-</style>

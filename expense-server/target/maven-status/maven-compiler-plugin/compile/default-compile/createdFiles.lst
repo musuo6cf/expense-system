@@ -1,4 +1,5 @@
 com\company\expense\entity\SysUser.class
+com\company\expense\service\impl\AttachmentServiceImpl.class
 com\company\expense\entity\SysDepartment.class
 com\company\expense\entity\SysUserRole.class
 com\company\expense\ExpenseApplication.class
@@ -14,6 +15,7 @@ com\company\expense\entity\LoginLog.class
 com\company\expense\entity\SysRolePermission.class
 com\company\expense\utils\JwtUtil.class
 com\company\expense\vo\ExpenseVO.class
+com\company\expense\controller\AttachmentController.class
 com\company\expense\mapper\SysRoleMapper.class
 com\company\expense\common\Result.class
 com\company\expense\common\ResultCode.class
@@ -23,6 +25,8 @@ com\company\expense\mapper\LoginLogMapper.class
 com\company\expense\mapper\SysUserMapper.class
 com\company\expense\service\impl\ExpenseServiceImpl.class
 com\company\expense\entity\SysRole.class
+com\company\expense\service\AttachmentService.class
+com\company\expense\vo\AttachmentVO.class
 com\company\expense\entity\ExpenseItem.class
 com\company\expense\entity\OperationLog.class
 com\company\expense\entity\Attachment.class

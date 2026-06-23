@@ -33,6 +33,10 @@ export function deleteExpense(id: number) {
   return request.delete(`/expense/${id}`)
 }
 
+export function submitExpense(id: string) {
+  return request.post(`/expense/submit/${id}`)
+}
+
 export function uploadAttachment(expenseId: number, file: File) {
   const formData = new FormData()
   formData.append('expenseId', String(expenseId))

@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import {
-  getExpenseById, createExpense, updateExpense,
+  getExpenseById, createExpense, updateExpense, submitExpense,
   uploadAttachment, getAttachments, deleteAttachment
 } from '@/api/expense'
 
@@ -115,9 +115,50 @@ async function handleSubmit() {
       await updateExpense(expenseId.value, data)
       ElMessage.success('保存成功')
     } else {
-      await createExpense(data)
-      ElMessage.success('创建成功')
+      const res: any = await createExpense(data)
+      const newId = res.data
+      ElMessage.success('创建成功，请上传凭证附件')
+      router.push(`/expense/edit/${newId}`)
+      return
     }
+    router.push('/expense')
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function handleSubmitAndSend() {
+  if (!form.value.title.trim()) {
+    ElMessage.warning('请输入标题')
+    return
+  }
+  if (items.value.length === 0) {
+    ElMessage.warning('请添加至少一条费用明细')
+    return
+  }
+  for (const item of items.value) {
+    if (!item.expenseType || !item.amount || !item.expenseDate) {
+      ElMessage.warning('请完善费用明细信息')
+      return
+    }
+  }
+
+  const data = {
+    title: form.value.title,
+    reason: form.value.reason,
+    items: items.value.map(i => ({
+      expenseType: i.expenseType,
+      amount: Number(i.amount),
+      expenseDate: i.expenseDate,
+      description: i.description
+    }))
+  }
+
+  submitting.value = true
+  try {
+    await updateExpense(expenseId.value, data)
+    await submitExpense(expenseId.value)
+    ElMessage.success('已保存并提交，请等待主管审批')
     router.push('/expense')
   } finally {
     submitting.value = false
@@ -248,6 +289,14 @@ onMounted(() => {
         <el-button @click="router.push('/expense')">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">
           {{ isEdit ? '保存' : '创建' }}
+        </el-button>
+        <el-button
+          v-if="isEdit"
+          type="success"
+          :loading="submitting"
+          @click="handleSubmitAndSend"
+        >
+          保存并提交
         </el-button>
       </div>
     </el-card>

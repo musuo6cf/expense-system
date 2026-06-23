@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getExpensePage, deleteExpense } from '@/api/expense'
+import { getExpensePage, deleteExpense, submitExpense } from '@/api/expense'
 
 const router = useRouter()
 
@@ -43,6 +43,15 @@ function handleEdit(id: number) {
 
 function handleCreate() {
   router.push('/expense/edit')
+}
+
+async function handleSubmit(id: string) {
+  try {
+    await ElMessageBox.confirm('提交后将无法修改，确定提交吗？', '确认提交', { type: 'warning' })
+    await submitExpense(id)
+    ElMessage.success('提交成功，请等待主管审批')
+    fetchList()
+  } catch { /* cancelled */ }
 }
 
 async function handleDelete(id: number) {
@@ -103,6 +112,15 @@ onMounted(() => {
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleView(row.id)">查看</el-button>
+            <el-button
+              v-if="row.status === 0"
+              link
+              type="success"
+              size="small"
+              @click="handleSubmit(row.id)"
+            >
+              提交
+            </el-button>
             <el-button
               v-if="row.status === 0"
               link

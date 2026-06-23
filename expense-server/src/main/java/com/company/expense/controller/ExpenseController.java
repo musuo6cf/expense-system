@@ -30,10 +30,10 @@ public class ExpenseController {
 
     @Operation(summary = "新建报销单")
     @PostMapping
-    public Result<Void> create(@Valid @RequestBody ExpenseDTO dto, HttpServletRequest request) {
+    public Result<Long> create(@Valid @RequestBody ExpenseDTO dto, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        expenseService.createExpense(dto, userId);
-        return Result.ok();
+        Long expenseId = expenseService.createExpense(dto, userId);
+        return Result.ok(expenseId);
     }
 
     @Operation(summary = "分页查询报销单")
@@ -70,6 +70,14 @@ public class ExpenseController {
     public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         expenseService.deleteExpense(id, userId);
+        return Result.ok();
+    }
+
+    @Operation(summary = "提交报销单")
+    @PostMapping("/submit/{id}")
+    public Result<Void> submit(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        expenseService.submitExpense(id, userId);
         return Result.ok();
     }
 }

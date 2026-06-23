@@ -6,7 +6,7 @@ import com.company.expense.vo.ExpenseVO;
 
 public interface ExpenseService {
 
-    void createExpense(ExpenseDTO dto, Long userId);
+    Long createExpense(ExpenseDTO dto, Long userId);
 
     Page<ExpenseVO> pageExpenses(Integer page, Integer size, Integer status, String keyword, Long userId);
 
@@ -15,4 +15,6 @@ public interface ExpenseService {
     void updateExpense(Long id, ExpenseDTO dto, Long userId);
 
     void deleteExpense(Long id, Long userId);
+
+    void submitExpense(Long id, Long userId);
 }

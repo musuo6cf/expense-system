@@ -1,1 +1,0 @@
-import{r as e}from"./request-CaYJmq9b.js";function i(){return e.get("/finance/pending")}function r(n){return e.get(`/finance/${n}`)}function c(n,t){return e.post("/finance/pass",{expenseId:n,comment:t})}function s(n,t){return e.post("/finance/reject",{expenseId:n,comment:t})}export{r as a,i as g,c as p,s as r};

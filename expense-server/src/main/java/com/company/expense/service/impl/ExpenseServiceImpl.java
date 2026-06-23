@@ -7,12 +7,16 @@ import com.company.expense.dto.ExpenseDTO;
 import com.company.expense.entity.Expense;
 import com.company.expense.entity.ExpenseItem;
 import com.company.expense.entity.SysDepartment;
+import com.company.expense.entity.SysRole;
 import com.company.expense.entity.SysUser;
+import com.company.expense.entity.SysUserRole;
 import com.company.expense.exception.BusinessException;
 import com.company.expense.mapper.ExpenseItemMapper;
 import com.company.expense.mapper.ExpenseMapper;
 import com.company.expense.mapper.SysDepartmentMapper;
+import com.company.expense.mapper.SysRoleMapper;
 import com.company.expense.mapper.SysUserMapper;
+import com.company.expense.mapper.SysUserRoleMapper;
 import com.company.expense.service.ExpenseService;
 import com.company.expense.vo.ExpenseVO;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +41,12 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseItemMapper expenseItemMapper;
     private final SysUserMapper sysUserMapper;
     private final SysDepartmentMapper sysDepartmentMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
+    private final SysRoleMapper sysRoleMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createExpense(ExpenseDTO dto, Long userId) {
+    public Long createExpense(ExpenseDTO dto, Long userId) {
         SysUser user = sysUserMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
@@ -74,6 +80,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         for (ExpenseItem item : items) {
             expenseItemMapper.insert(item);
         }
+        return expense.getId();
     }
 
     @Override
@@ -175,6 +182,38 @@ public class ExpenseServiceImpl implements ExpenseService {
         LambdaQueryWrapper<ExpenseItem> itemWrapper = new LambdaQueryWrapper<>();
         itemWrapper.eq(ExpenseItem::getExpenseId, id);
         expenseItemMapper.delete(itemWrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void submitExpense(Long id, Long userId) {
+        Expense expense = expenseMapper.selectById(id);
+        if (expense == null) {
+            throw new BusinessException(ResultCode.EXPENSE_NOT_FOUND);
+        }
+        if (!expense.getApplicantId().equals(userId)) {
+            throw new BusinessException(ResultCode.FORBIDDEN);
+        }
+        if (expense.getStatus() != Expense.STATUS_DRAFT) {
+            throw new BusinessException(ResultCode.EXPENSE_STATUS_ERROR);
+        }
+
+        // 主管提交直接进入财务审核，跳过主管审批
+        int targetStatus = isManager(userId) ? Expense.STATUS_PENDING_FINANCE : Expense.STATUS_PENDING_MANAGER;
+        expense.setStatus(targetStatus);
+        expenseMapper.updateById(expense);
+    }
+
+    private boolean isManager(Long userId) {
+        LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
+        urWrapper.eq(SysUserRole::getUserId, userId);
+        List<Long> roleIds = sysUserRoleMapper.selectList(urWrapper).stream()
+                .map(SysUserRole::getRoleId)
+                .collect(Collectors.toList());
+        if (roleIds.isEmpty()) return false;
+        return sysRoleMapper.selectCount(
+                new LambdaQueryWrapper<SysRole>().in(SysRole::getId, roleIds).eq(SysRole::getRoleCode, "MANAGER")
+        ) > 0;
     }
 
     // ========== helper methods ==========

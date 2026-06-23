@@ -12,7 +12,7 @@ const route = useRoute()
 const router = useRouter()
 
 const isEdit = computed(() => !!route.params.id)
-const expenseId = computed(() => Number(route.params.id) || 0)
+const expenseId = computed(() => String(route.params.id || ''))
 
 const form = ref({
   title: '',

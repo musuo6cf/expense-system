@@ -16,6 +16,7 @@ com\company\expense\dto\ExpenseDTO$ExpenseItemDTO.class
 com\company\expense\exception\GlobalExceptionHandler.class
 com\company\expense\service\FinanceApprovalService.class
 com\company\expense\service\PaymentService.class
+com\company\expense\config\JacksonConfig.class
 com\company\expense\controller\ExpenseController.class
 com\company\expense\entity\LoginLog.class
 com\company\expense\entity\SysRolePermission.class

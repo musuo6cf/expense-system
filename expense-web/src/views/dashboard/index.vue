@@ -34,7 +34,7 @@ function getStatusTag(status: number) {
 }
 
 async function loadStats() {
-  const stats = await getDashboardStats()
+  const stats = await getDashboardStats(userStore.roles)
   myCount.value = stats.myCount
   approvalCount.value = stats.approvalCount
   financeCount.value = stats.financeCount

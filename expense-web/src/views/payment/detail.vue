@@ -6,7 +6,7 @@ import { getPaymentDetail, payExpense } from '@/api/payment'
 
 const route = useRoute()
 const router = useRouter()
-const expenseId = Number(route.params.id)
+const expenseId = String(route.params.id)
 
 const detail = ref<any>(null)
 const paymentMethod = ref('银行转账')

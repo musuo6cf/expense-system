@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { getExpenseById, getAttachments } from '@/api/expense'
 
 const route = useRoute()
-const expenseId = Number(route.params.id)
+const expenseId = String(route.params.id)
 
 const expense = ref<any>(null)
 const attachments = ref<any[]>([])

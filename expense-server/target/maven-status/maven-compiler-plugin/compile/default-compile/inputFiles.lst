@@ -14,6 +14,7 @@ D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\se
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\controller\AttachmentController.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\config\PasswordConfig.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\mapper\SysPermissionMapper.java
+D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\config\JacksonConfig.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\entity\SysRolePermission.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\mapper\SysRoleMapper.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\entity\ApprovalRecord.java

@@ -5,7 +5,7 @@ import router from '@/router'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
-  const userId = ref(Number(localStorage.getItem('userId')) || 0)
+  const userId = ref(localStorage.getItem('userId') || '')
   const username = ref(localStorage.getItem('username') || '')
   const realName = ref(localStorage.getItem('realName') || '')
   const roles = ref<string[]>(JSON.parse(localStorage.getItem('roles') || '[]'))
@@ -30,7 +30,7 @@ export const useUserStore = defineStore('user', () => {
   function logout() {
     logoutApi().finally(() => {
       token.value = ''
-      userId.value = 0
+      userId.value = ''
       username.value = ''
       realName.value = ''
       roles.value = []

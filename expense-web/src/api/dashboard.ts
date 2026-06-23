@@ -3,7 +3,7 @@ import { getPendingList as getApprovalPending } from './approval'
 import { getPendingList as getFinancePending } from './finance'
 import { getPendingList as getPaymentPending } from './payment'
 
-export async function getDashboardStats() {
+export async function getDashboardStats(roles: string[]) {
   const [myRes, paidRes, recentRes] = await Promise.all([
     getExpensePage({ page: 1, size: 1 }).catch(() => ({ data: { total: 0 } })),
     getExpensePage({ page: 1, size: 1, status: 6 }).catch(() => ({ data: { total: 0 } })),
@@ -13,9 +13,14 @@ export async function getDashboardStats() {
   let approvalCount = 0
   let financeCount = 0
   let paymentCount = 0
-  try { const r: any = await getApprovalPending(); approvalCount = r.data?.length || 0 } catch { /**/ }
-  try { const r: any = await getFinancePending(); financeCount = r.data?.length || 0 } catch { /**/ }
-  try { const r: any = await getPaymentPending(); paymentCount = r.data?.length || 0 } catch { /**/ }
+
+  if (roles.includes('MANAGER')) {
+    try { const r: any = await getApprovalPending(); approvalCount = r.data?.length || 0 } catch { /**/ }
+  }
+  if (roles.includes('FINANCE')) {
+    try { const r: any = await getFinancePending(); financeCount = r.data?.length || 0 } catch { /**/ }
+    try { const r: any = await getPaymentPending(); paymentCount = r.data?.length || 0 } catch { /**/ }
+  }
 
   return {
     myCount: (myRes as any).data?.total || 0,

@@ -2,7 +2,7 @@
 
 # 小型企业费用报销管理系统 AI 开发规范
 
-Version: 1.0
+Version: 2.0
 
 ------
 
@@ -131,47 +131,47 @@ MySQL 8
 ## Frontend
 
 ```text
-src
-
-├── api
-├── assets
-├── components
-├── layout
-├── router
-├── stores
-├── utils
-├── views
-
-│   ├── login
-│   ├── dashboard
-│   ├── expense
-│   ├── approval
-│   ├── finance
-│   ├── statistics
-│   └── system
-
-├── App.vue
-└── main.ts
+expense-web/
+├── package.json
+├── vite.config.ts
+├── index.html
+└── src
+    ├── api           # 7 个 API 模块
+    ├── assets
+    ├── components
+    ├── layout        # 角色感知菜单布局
+    ├── router        # 18 条路由 + 导航守卫
+    ├── stores        # Pinia 用户状态（持久化）
+    ├── utils         # Axios 封装
+    └── views
+        ├── login
+        ├── dashboard
+        ├── expense
+        ├── approval
+        ├── finance
+        ├── payment
+        └── profile
 ```
 
 ## Backend
 
 ```text
-com.company.expense
-
-├── common
-├── config
-├── controller
-├── service
-├── service.impl
-├── mapper
-├── entity
-├── dto
-├── vo
-├── exception
-├── interceptor
-├── utils
-└── ExpenseApplication
+expense-server/
+├── pom.xml
+└── src/main/java/com/company/expense
+    ├── common        # Result / ResultCode
+    ├── config        # MyBatisPlus / CORS / WebMvc / Password / Jackson
+    ├── controller    # 7 个 Controller
+    ├── service       # 7 个接口
+    ├── service.impl  # 7 个实现
+    ├── mapper        # 12 个 Mapper
+    ├── entity        # 12 个 Entity
+    ├── dto           # 7 个 DTO
+    ├── vo            # 7 个 VO
+    ├── exception     # BusinessException / GlobalExceptionHandler
+    ├── interceptor   # JwtInterceptor
+    ├── utils         # JwtUtil
+    └── ExpenseApplication
 ```
 
 ------
@@ -205,18 +205,7 @@ approval_record
 snake_case
 ```
 
-例如：
-
-```text
-create_time
-update_time
-real_name
-department_id
-```
-
 主键：
-
-统一：
 
 ```java
 @TableId(type = IdType.ASSIGN_ID)
@@ -244,88 +233,47 @@ private Integer deleted;
 
 禁止编写业务逻辑。
 
-返回：
-
-统一使用：
+返回统一使用：
 
 ```java
 Result<T>
 ```
 
-例如：
-
-```java
-@GetMapping("/{id}")
-public Result<ExpenseVO> getById()
-```
-
-------
-
 ## Service
 
-负责：
-
-- 核心业务逻辑
+负责核心业务逻辑。
 
 事务：
 
 ```java
-@Transactional(
-    rollbackFor = Exception.class
-)
+@Transactional(rollbackFor = Exception.class)
 ```
-
-------
 
 ## Mapper
 
-使用：
+优先使用 LambdaQueryWrapper / LambdaUpdateWrapper，避免直接写 SQL。
 
-MyBatis Plus
+## Entity / DTO / VO
 
-优先：
+- Entity：数据库映射，禁止直接接收请求或返回
+- DTO：请求参数
+- VO：响应数据
 
-```java
-LambdaQueryWrapper
-LambdaUpdateWrapper
-```
+## Jackson 配置
 
-避免直接写 SQL。
-
-------
-
-## Entity
-
-实体类：
+Snowflake 生成的 Long ID 必须序列化为 String，防止前端 JavaScript Number 精度丢失：
 
 ```java
-@Data
-@TableName()
+// JacksonConfig.java
+builder.serializerByType(Long.class, ToStringSerializer.instance);
 ```
 
-禁止：
+前端统一使用 String 处理 ID。
 
-VO 和 Entity 混用。
+## 分页查询权限
 
-------
-
-## DTO
-
-用于：
-
-请求参数。
-
-禁止直接使用 Entity 接收请求。
-
-------
-
-## VO
-
-用于：
-
-响应数据。
-
-禁止直接返回 Entity。
+- 普通用户：只查自己的数据 `wrapper.eq(applicantId, userId)`
+- FINANCE / ADMIN：查看全公司数据（跳过申请人过滤）
 
 ------
 
@@ -337,56 +285,23 @@ VO 和 Entity 混用。
 <script setup lang="ts">
 ```
 
-状态管理：
+状态管理：Pinia
 
-Pinia
+请求统一通过 `src/api/`，禁止页面直接 axios。
 
-请求：
+路由参数 ID 使用 String 类型（Long 精度问题）：
 
-统一：
-
-```text
-src/api
-```
-
-禁止页面直接 axios。
-
-页面：
-
-```text
-views
-```
-
-组件：
-
-```text
-components
-```
-
-公共方法：
-
-```text
-utils
+```typescript
+const expenseId = String(route.params.id)  // 不是 Number()
 ```
 
 ------
 
 # API 规范
 
-统一前缀：
+统一前缀：`/api`
 
-```text
-/api
-```
-
-RESTful 风格：
-
-```text
-GET
-POST
-PUT
-DELETE
-```
+RESTful 风格：GET / POST / PUT / DELETE
 
 统一返回：
 
@@ -398,168 +313,115 @@ DELETE
 }
 ```
 
+--- 已实现 API 全览
+
+| 模块 | 方法 | 路径 | 说明 |
+|------|------|------|------|
+| Auth | POST | /api/auth/login | 登录 |
+| Auth | POST | /api/auth/logout | 登出 |
+| User | GET | /api/user/page | 分页用户 |
+| User | GET | /api/user/{id} | 用户详情 |
+| User | POST | /api/user | 新增用户 |
+| User | PUT | /api/user | 编辑用户 |
+| User | DELETE | /api/user/{id} | 删除用户 |
+| User | PUT | /api/user/password | 修改密码 |
+| Expense | POST | /api/expense | 新建报销 |
+| Expense | GET | /api/expense/page | 分页查询 |
+| Expense | GET | /api/expense/{id} | 报销详情 |
+| Expense | PUT | /api/expense/{id} | 编辑报销 |
+| Expense | DELETE | /api/expense/{id} | 删除报销 |
+| Expense | POST | /api/expense/submit/{id} | 提交报销 |
+| Attachment | POST | /api/attachment/upload | 上传附件 |
+| Attachment | GET | /api/attachment/expense/{expenseId} | 附件列表 |
+| Attachment | DELETE | /api/attachment/{id} | 删除附件 |
+| Attachment | GET | /api/attachment/download/{id} | 下载/预览 |
+| Approval | GET | /api/approval/pending | 待审批列表 |
+| Approval | GET | /api/approval/{expenseId} | 审批详情 |
+| Approval | POST | /api/approval/pass | 审批通过 |
+| Approval | POST | /api/approval/reject | 审批驳回 |
+| Finance | GET | /api/finance/pending | 待审核列表 |
+| Finance | GET | /api/finance/{expenseId} | 审核详情 |
+| Finance | POST | /api/finance/pass | 审核通过 |
+| Finance | POST | /api/finance/reject | 审核驳回 |
+| Payment | GET | /api/payment/pending | 待付款列表 |
+| Payment | GET | /api/payment/{expenseId} | 付款详情 |
+| Payment | POST | /api/payment/pay | 确认付款 |
+
 ------
 
 # 权限模型
 
-采用：
-
-RBAC
-
-数据库：
-
-```text
-sys_user
-
-sys_role
-
-sys_permission
-
-sys_user_role
-
-sys_role_permission
-```
+采用 RBAC。
 
 角色：
 
-```text
-ADMIN
-
-EMPLOYEE
-
-MANAGER
-
-FINANCE
-```
+| 编码 | 名称 | 权限 |
+|------|------|------|
+| ADMIN | 系统管理员 | 查看全公司数据 |
+| EMPLOYEE | 员工 | 新建报销 / 查看本人报销 |
+| MANAGER | 部门经理 | 审批本部门报销（不能审自己） |
+| FINANCE | 财务人员 | 财务审核 / 付款 / 查看全公司 |
 
 ------
 
 # 报销流程
 
 ```text
-员工提交
-    ↓
-待主管审批
-    ↓
-待财务审核
-    ↓
-待付款
-    ↓
-已付款
-    ↓
-已归档
+员工提交 → 待主管审批(1) → 待财务审核(3) → 待付款(5) → 已付款(6)
+                 ↘ 主管驳回(2)      ↘ 财务驳回(4)
+
+主管提交 → 直接进入待财务审核(3)，跳过主管审批
 ```
-
-驳回：
-
-```text
-主管驳回
-
-财务驳回
-```
-
-员工修改后重新提交。
 
 ------
 
 # 开发顺序
 
-Phase 1
+Phase 1 ✅ 基础框架 + JWT + 用户管理
 
-基础框架
+Phase 2 ✅ 报销模块 (CRUD + 附件上传/下载 + 提交)
 
-- 登录
-- JWT
-- 用户管理
+Phase 3 ✅ 审批模块 (主管审批 + 财务审核)
 
-Phase 2
+Phase 4 ✅ 付款模块 (付款确认 + 防重复)
 
-报销模块
+Phase 5 ✅ 统计模块 (ECharts + 角色感知仪表盘)
 
-- 新建报销单
-- 上传附件
-- 查询
+Phase 6 🔜 系统模块 (操作日志 / Excel 导出)
 
-Phase 3
-
-审批模块
-
-- 主管审批
-- 财务审核
-
-Phase 4
-
-付款模块
-
-- 付款信息
-- 自动归档
-
-Phase 5
-
-统计模块
-
-- ECharts
-- Excel导出
-
-Phase 6
-
-系统模块
-
-- 部门管理
-- 角色权限
-- 日志
+Phase 7 🔜 增强 (Redis 缓存 / WebSocket / Docker)
 
 ------
 
-# AI 编码要求
+# 测试账号
 
-生成代码时：
-
-必须：
-
-✅ 完整代码
-
-✅ 可运行
-
-✅ 包含 import
-
-✅ 保持项目结构
-
-✅ 最小修改
-
-优先：
-
-1. 可运行
-2. 可维护
-3. 简洁
-
-禁止：
-
-❌ 重构整个项目
-
-❌ 引入新框架
-
-❌ 修改目录结构
-
-❌ 留空实现
-
-❌ 输出伪代码
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| admin | admin123 | ADMIN |
+| employee1 | employee | EMPLOYEE |
+| manager1 | manager | MANAGER |
+| finance1 | finance | FINANCE |
 
 ------
 
-# 当前目标
+# 环境信息
 
-构建一个稳定、简单、可维护的小型企业费用报销管理系统。
+- MySQL 数据库：expense_db（账号 root / 151158，服务名 MySQL83）
+- Maven 路径：C:\Users\30920\.maven\bin\mvn.cmd
+- 后端端口：8080（context-path: /api）
+- 前端端口：3000（Vite 代理 /api → localhost:8080）
+- 上传目录：expense-server/uploads/yyyy/MM/
 
-优先完成 MVP：
+------
 
-登录 → 报销 → 审批 → 财务付款 → 统计分析。
+# 关键约定
 
-暂不考虑：
-
-- 微服务
-- DDD
-- MQ
-- 分布式事务
-
-保持单体架构，快速交付。
+1. Long ID 必须序列化为 String（JacksonConfig）
+2. 前端 ID 必须用 String 类型
+3. FINANCE/ADMIN 的 pageExpenses 不加 applicantId 过滤
+4. 主管提交直接进入待财务审核
+5. 附件下载路径已排除 JWT 拦截
+6. Dashboard 调用受限 API 前需判断角色
+7. 创建报销后跳转编辑页（非列表页），以便用户上传附件
+8. 不要修改已有表结构
+9. 修改文件数遵守用户指定的上限

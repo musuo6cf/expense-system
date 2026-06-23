@@ -1,6 +1,8 @@
+com\company\expense\dto\ApprovalDTO.class
 com\company\expense\entity\SysUser.class
 com\company\expense\service\impl\AttachmentServiceImpl.class
 com\company\expense\entity\SysDepartment.class
+com\company\expense\vo\ApprovalVO.class
 com\company\expense\entity\SysUserRole.class
 com\company\expense\ExpenseApplication.class
 com\company\expense\dto\ExpenseDTO.class
@@ -8,6 +10,7 @@ com\company\expense\config\CorsConfig.class
 com\company\expense\dto\PageQueryDTO.class
 com\company\expense\dto\PasswordUpdateDTO.class
 com\company\expense\vo\LoginVO.class
+com\company\expense\vo\ApprovalVO$Record.class
 com\company\expense\dto\ExpenseDTO$ExpenseItemDTO.class
 com\company\expense\exception\GlobalExceptionHandler.class
 com\company\expense\controller\ExpenseController.class
@@ -19,6 +22,7 @@ com\company\expense\controller\AttachmentController.class
 com\company\expense\mapper\SysRoleMapper.class
 com\company\expense\common\Result.class
 com\company\expense\common\ResultCode.class
+com\company\expense\service\impl\ApprovalServiceImpl.class
 com\company\expense\config\PasswordConfig.class
 com\company\expense\entity\Expense.class
 com\company\expense\mapper\LoginLogMapper.class
@@ -46,6 +50,7 @@ com\company\expense\controller\SysUserController.class
 com\company\expense\mapper\ApprovalRecordMapper.class
 com\company\expense\service\SysUserService.class
 com\company\expense\mapper\ExpenseItemMapper.class
+com\company\expense\service\ApprovalService.class
 com\company\expense\dto\LoginDTO.class
 com\company\expense\entity\ApprovalRecord.class
 com\company\expense\mapper\OperationLogMapper.class
@@ -55,3 +60,4 @@ com\company\expense\mapper\SysUserRoleMapper.class
 com\company\expense\config\WebMvcConfig.class
 com\company\expense\config\MyBatisPlusConfig.class
 com\company\expense\service\impl\AuthServiceImpl.class
+com\company\expense\controller\ApprovalController.class

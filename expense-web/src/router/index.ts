@@ -47,6 +47,31 @@ const router = createRouter({
           path: 'approval/:id',
           name: 'ApprovalDetail',
           component: () => import('@/views/approval/detail.vue')
+        },
+        {
+          path: 'finance',
+          name: 'FinanceList',
+          component: () => import('@/views/finance/index.vue')
+        },
+        {
+          path: 'finance/:id',
+          name: 'FinanceDetail',
+          component: () => import('@/views/finance/detail.vue')
+        },
+        {
+          path: 'payment',
+          name: 'PaymentList',
+          component: () => import('@/views/payment/index.vue')
+        },
+        {
+          path: 'payment/:id',
+          name: 'PaymentDetail',
+          component: () => import('@/views/payment/detail.vue')
+        },
+        {
+          path: 'profile',
+          name: 'Profile',
+          component: () => import('@/views/profile/index.vue')
         }
       ]
     }

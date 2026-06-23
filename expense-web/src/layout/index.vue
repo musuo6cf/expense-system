@@ -52,6 +52,15 @@ function handleLogout() {
             <template #title>审批中心</template>
             <el-menu-item index="/approval">待主管审批</el-menu-item>
           </el-sub-menu>
+          <el-sub-menu v-if="userStore.roles.includes('FINANCE')" index="finance">
+            <template #title>财务中心</template>
+            <el-menu-item index="/finance">财务审核</el-menu-item>
+            <el-menu-item index="/payment">待付款</el-menu-item>
+          </el-sub-menu>
+          <el-sub-menu index="system">
+            <template #title>系统设置</template>
+            <el-menu-item index="/profile">个人中心</el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
       <el-main class="layout-main">

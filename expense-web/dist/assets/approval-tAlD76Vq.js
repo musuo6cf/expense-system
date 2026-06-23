@@ -1,1 +1,0 @@
-import{r as p}from"./request-VkYFU0C2.js";function e(){return p.get("/approval/pending")}function n(r){return p.get(`/approval/${r}`)}function o(r,t){return p.post("/approval/pass",{expenseId:r,comment:t})}function s(r,t){return p.post("/approval/reject",{expenseId:r,comment:t})}export{n as a,e as g,o as p,s as r};

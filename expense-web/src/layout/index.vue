@@ -44,6 +44,14 @@ function handleLogout() {
           <el-menu-item index="/dashboard">
             <template #title>首页</template>
           </el-menu-item>
+          <el-sub-menu index="expense">
+            <template #title>报销管理</template>
+            <el-menu-item index="/expense">报销列表</el-menu-item>
+          </el-sub-menu>
+          <el-sub-menu v-if="userStore.roles.includes('MANAGER')" index="approval">
+            <template #title>审批中心</template>
+            <el-menu-item index="/approval">待主管审批</el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
       <el-main class="layout-main">

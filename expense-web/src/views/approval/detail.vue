@@ -1,0 +1,148 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getApprovalDetail, passApproval, rejectApproval } from '@/api/approval'
+
+const route = useRoute()
+const router = useRouter()
+const expenseId = Number(route.params.id)
+
+const detail = ref<any>(null)
+const comment = ref('')
+const submitting = ref(false)
+
+const statusMap: Record<number, { text: string; type: string }> = {
+  0: { text: '草稿', type: 'info' },
+  1: { text: '待主管审批', type: 'warning' },
+  2: { text: '主管驳回', type: 'danger' },
+  3: { text: '待财务审核', type: 'warning' },
+  4: { text: '财务驳回', type: 'danger' },
+  5: { text: '待付款', type: '' },
+  6: { text: '已付款', type: 'success' }
+}
+
+function getStatusTag(status: number) {
+  return statusMap[status] || { text: '未知', type: 'info' }
+}
+
+async function fetchDetail() {
+  const res: any = await getApprovalDetail(expenseId)
+  detail.value = res.data
+}
+
+async function handlePass() {
+  try {
+    await ElMessageBox.confirm('确定审批通过吗？', '确认审批', { type: 'success' })
+  } catch {
+    return
+  }
+  submitting.value = true
+  try {
+    await passApproval(expenseId, comment.value)
+    ElMessage.success('审批通过')
+    router.push('/approval')
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function handleReject() {
+  try {
+    await ElMessageBox.confirm('确定驳回该报销单吗？', '确认驳回', { type: 'warning' })
+  } catch {
+    return
+  }
+  submitting.value = true
+  try {
+    await rejectApproval(expenseId, comment.value)
+    ElMessage.success('已驳回')
+    router.push('/approval')
+  } finally {
+    submitting.value = false
+  }
+}
+
+onMounted(() => fetchDetail())
+</script>
+
+<template>
+  <div v-if="detail" style="max-width: 900px">
+    <!-- Basic Info -->
+    <el-card style="margin-bottom: 16px">
+      <template #header><span>基本信息</span></template>
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="报销编号">{{ detail.expenseNo }}</el-descriptions-item>
+        <el-descriptions-item label="标题">{{ detail.title }}</el-descriptions-item>
+        <el-descriptions-item label="申请人">{{ detail.applicantName }}</el-descriptions-item>
+        <el-descriptions-item label="部门">{{ detail.departmentName }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusTag(detail.status).type">
+            {{ getStatusTag(detail.status).text }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="总金额">¥{{ detail.totalAmount }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ detail.createTime }}</el-descriptions-item>
+        <el-descriptions-item label="报销原因" :span="2">{{ detail.reason || '-' }}</el-descriptions-item>
+      </el-descriptions>
+    </el-card>
+
+    <!-- Approval History -->
+    <el-card style="margin-bottom: 16px">
+      <template #header><span>审批历史</span></template>
+      <div v-if="!detail.records || detail.records.length === 0" style="color: #909399">
+        暂无审批记录
+      </div>
+      <el-timeline v-else>
+        <el-timeline-item
+          v-for="(r, i) in detail.records"
+          :key="i"
+          :type="r.approveResult === 1 ? 'success' : 'danger'"
+          :timestamp="r.approveTime"
+        >
+          <div>
+            <strong>{{ r.approverName }}</strong>
+            <el-tag
+              :type="r.approveResult === 1 ? 'success' : 'danger'"
+              size="small"
+              style="margin-left: 8px"
+            >
+              {{ r.approveResultText }}
+            </el-tag>
+          </div>
+          <div v-if="r.comment" style="color: #606266; margin-top: 4px">{{ r.comment }}</div>
+        </el-timeline-item>
+      </el-timeline>
+    </el-card>
+
+    <!-- Action (only for PENDING_MANAGER status) -->
+    <el-card v-if="detail.status === 1" style="margin-bottom: 16px">
+      <template #header><span>审批操作</span></template>
+      <el-input
+        v-model="comment"
+        type="textarea"
+        :rows="3"
+        placeholder="请输入审批意见（选填）"
+        maxlength="500"
+        show-word-limit
+      />
+      <div style="margin-top: 16px; text-align: center">
+        <el-button
+          type="success"
+          :loading="submitting"
+          @click="handlePass"
+        >
+          通 过
+        </el-button>
+        <el-button
+          type="danger"
+          :loading="submitting"
+          style="margin-left: 24px"
+          @click="handleReject"
+        >
+          驳 回
+        </el-button>
+      </div>
+    </el-card>
+  </div>
+</template>

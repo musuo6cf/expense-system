@@ -9,7 +9,8 @@
       "PowerShell($mvnCmd = \"$env:USERPROFILE\\\\.maven\\\\bin\\\\mvn.cmd\"; & $mvnCmd compile -f \"D:\\\\Project\\\\enterprise system\\\\expense-server\\\\pom.xml\" 2>&1 | Select-Object -Last 15)",
       "PowerShell($mvnCmd = \"$env:USERPROFILE\\\\.maven\\\\bin\\\\mvn.cmd\"; & $mvnCmd compile -f \"D:\\\\Project\\\\enterprise system\\\\expense-server\\\\pom.xml\" 2>&1 | Select-Object -Last 8)",
       "PowerShell(mysql *)",
-      "PowerShell($mvnCmd = \"$env:USERPROFILE\\\\.maven\\\\bin\\\\mvn.cmd\"; & $mvnCmd spring-boot:run -f \"D:\\\\Project\\\\enterprise system\\\\expense-server\\\\pom.xml\" 2>&1)"
+      "PowerShell($mvnCmd = \"$env:USERPROFILE\\\\.maven\\\\bin\\\\mvn.cmd\"; & $mvnCmd spring-boot:run -f \"D:\\\\Project\\\\enterprise system\\\\expense-server\\\\pom.xml\" 2>&1)",
+      "PowerShell($mvnCmd = \"$env:USERPROFILE\\\\.maven\\\\bin\\\\mvn.cmd\"; & $mvnCmd compile -f \"D:\\\\Project\\\\enterprise system\\\\expense-server\\\\pom.xml\" 2>&1 | Select-Object -Last 10)"
     ]
   }
 }

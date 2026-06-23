@@ -6,6 +6,7 @@ D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\en
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\impl\AttachmentServiceImpl.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\controller\AuthController.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\controller\ExpenseController.java
+D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\dto\FinanceApprovalDTO.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\AttachmentService.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\ExpenseApplication.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\impl\ApprovalServiceImpl.java
@@ -41,6 +42,8 @@ D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\en
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\dto\ApprovalDTO.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\impl\ExpenseServiceImpl.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\dto\PasswordUpdateDTO.java
+D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\FinanceApprovalService.java
+D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\controller\FinanceApprovalController.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\mapper\ExpenseItemMapper.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\mapper\SysRolePermissionMapper.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\impl\SysUserServiceImpl.java
@@ -48,6 +51,7 @@ D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\in
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\mapper\ApprovalRecordMapper.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\entity\SysRole.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\mapper\SysUserRoleMapper.java
+D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\vo\FinanceApprovalVO.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\ExpenseService.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\entity\SysPermission.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\mapper\OperationLogMapper.java
@@ -55,6 +59,7 @@ D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\se
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\mapper\SysDepartmentMapper.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\dto\PageQueryDTO.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\entity\Attachment.java
+D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\impl\FinanceApprovalServiceImpl.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\entity\OperationLog.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\SysUserService.java
 D:\Project\enterprise system\expense-server\src\main\java\com\company\expense\service\ApprovalService.java

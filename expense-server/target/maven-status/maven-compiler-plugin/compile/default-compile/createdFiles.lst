@@ -13,6 +13,7 @@ com\company\expense\vo\LoginVO.class
 com\company\expense\vo\ApprovalVO$Record.class
 com\company\expense\dto\ExpenseDTO$ExpenseItemDTO.class
 com\company\expense\exception\GlobalExceptionHandler.class
+com\company\expense\service\FinanceApprovalService.class
 com\company\expense\controller\ExpenseController.class
 com\company\expense\entity\LoginLog.class
 com\company\expense\entity\SysRolePermission.class
@@ -21,6 +22,7 @@ com\company\expense\vo\ExpenseVO.class
 com\company\expense\controller\AttachmentController.class
 com\company\expense\mapper\SysRoleMapper.class
 com\company\expense\common\Result.class
+com\company\expense\controller\FinanceApprovalController.class
 com\company\expense\common\ResultCode.class
 com\company\expense\service\impl\ApprovalServiceImpl.class
 com\company\expense\config\PasswordConfig.class
@@ -40,10 +42,12 @@ com\company\expense\interceptor\JwtInterceptor.class
 com\company\expense\mapper\ExpenseMapper.class
 com\company\expense\controller\AuthController.class
 com\company\expense\vo\UserVO.class
+com\company\expense\dto\FinanceApprovalDTO.class
 com\company\expense\service\impl\SysUserServiceImpl.class
 com\company\expense\mapper\SysRolePermissionMapper.class
 com\company\expense\vo\ExpenseVO$ExpenseItemVO.class
 com\company\expense\service\ExpenseService.class
+com\company\expense\service\impl\FinanceApprovalServiceImpl.class
 com\company\expense\exception\BusinessException.class
 com\company\expense\mapper\AttachmentMapper.class
 com\company\expense\controller\SysUserController.class
@@ -56,8 +60,10 @@ com\company\expense\entity\ApprovalRecord.class
 com\company\expense\mapper\OperationLogMapper.class
 com\company\expense\mapper\SysPermissionMapper.class
 com\company\expense\entity\SysPermission.class
+com\company\expense\vo\FinanceApprovalVO$Record.class
 com\company\expense\mapper\SysUserRoleMapper.class
 com\company\expense\config\WebMvcConfig.class
 com\company\expense\config\MyBatisPlusConfig.class
 com\company\expense\service\impl\AuthServiceImpl.class
 com\company\expense\controller\ApprovalController.class
+com\company\expense\vo\FinanceApprovalVO.class

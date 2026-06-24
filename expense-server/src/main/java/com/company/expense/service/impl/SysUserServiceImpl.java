@@ -7,10 +7,14 @@ import com.company.expense.common.ResultCode;
 import com.company.expense.dto.PageQueryDTO;
 import com.company.expense.dto.PasswordUpdateDTO;
 import com.company.expense.entity.SysDepartment;
+import com.company.expense.entity.SysRole;
 import com.company.expense.entity.SysUser;
+import com.company.expense.entity.SysUserRole;
 import com.company.expense.exception.BusinessException;
 import com.company.expense.mapper.SysDepartmentMapper;
+import com.company.expense.mapper.SysRoleMapper;
 import com.company.expense.mapper.SysUserMapper;
+import com.company.expense.mapper.SysUserRoleMapper;
 import com.company.expense.service.SysUserService;
 import com.company.expense.vo.UserVO;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +33,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     private final SysUserMapper sysUserMapper;
     private final SysDepartmentMapper sysDepartmentMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
+    private final SysRoleMapper sysRoleMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
@@ -58,7 +64,24 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Page<UserVO> voPage = new Page<>(pageQuery.getPage(), pageQuery.getSize());
         voPage.setTotal(userPage.getTotal());
 
+        // load roles for all users
+        Map<Long, SysUserRole> roleMap = Map.of();
+        Map<Long, String> roleNameMap = Map.of();
+        List<Long> userIds = userPage.getRecords().stream().map(SysUser::getId).collect(Collectors.toList());
+        if (!userIds.isEmpty()) {
+            List<SysUserRole> allRoles = sysUserRoleMapper.selectList(
+                    new LambdaQueryWrapper<SysUserRole>().in(SysUserRole::getUserId, userIds));
+            roleMap = allRoles.stream().collect(Collectors.toMap(SysUserRole::getUserId, r -> r, (a, b) -> a));
+            List<Long> roleIds = allRoles.stream().map(SysUserRole::getRoleId).distinct().collect(Collectors.toList());
+            if (!roleIds.isEmpty()) {
+                roleNameMap = sysRoleMapper.selectBatchIds(roleIds).stream()
+                        .collect(Collectors.toMap(SysRole::getId, SysRole::getRoleName));
+            }
+        }
+
         Map<Long, String> finalDeptMap = deptMap;
+        Map<Long, SysUserRole> finalRoleMap = roleMap;
+        Map<Long, String> finalRoleNameMap = roleNameMap;
         List<UserVO> records = userPage.getRecords().stream().map(user -> {
             UserVO vo = new UserVO();
             vo.setId(user.getId());
@@ -69,6 +92,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             vo.setIcbcCardNo(user.getIcbcCardNo());
             vo.setDepartmentId(user.getDepartmentId());
             vo.setDepartmentName(finalDeptMap.get(user.getDepartmentId()));
+            SysUserRole ur = finalRoleMap.get(user.getId());
+            if (ur != null) {
+                vo.setRoleId(ur.getRoleId());
+                vo.setRoleName(finalRoleNameMap.get(ur.getRoleId()));
+            }
             vo.setStatus(user.getStatus());
             vo.setCreateTime(user.getCreateTime());
             return vo;
@@ -103,6 +131,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         }
 
+        // role info
+        LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
+        urWrapper.eq(SysUserRole::getUserId, id);
+        SysUserRole ur = sysUserRoleMapper.selectOne(urWrapper);
+        if (ur != null) {
+            vo.setRoleId(ur.getRoleId());
+            SysRole role = sysRoleMapper.selectById(ur.getRoleId());
+            if (role != null) {
+                vo.setRoleName(role.getRoleName());
+            }
+        }
+
         return vo;
     }
 
@@ -118,6 +158,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setStatus(1);
         sysUserMapper.insert(user);
+
+        // assign role
+        if (user.getRoleId() != null) {
+            SysUserRole ur = new SysUserRole();
+            ur.setUserId(user.getId());
+            ur.setRoleId(user.getRoleId());
+            sysUserRoleMapper.insert(ur);
+        }
     }
 
     @Override
@@ -131,6 +179,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setPassword(null);
         user.setUsername(null);
         sysUserMapper.updateById(user);
+
+        // update role
+        if (user.getRoleId() != null) {
+            LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
+            urWrapper.eq(SysUserRole::getUserId, user.getId());
+            sysUserRoleMapper.delete(urWrapper);
+            SysUserRole ur = new SysUserRole();
+            ur.setUserId(user.getId());
+            ur.setRoleId(user.getRoleId());
+            sysUserRoleMapper.insert(ur);
+        }
     }
 
     @Override
@@ -140,6 +199,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
         }
+        // remove role mapping
+        LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
+        urWrapper.eq(SysUserRole::getUserId, id);
+        sysUserRoleMapper.delete(urWrapper);
+
         sysUserMapper.deleteById(id);
     }
 

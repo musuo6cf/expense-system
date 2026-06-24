@@ -1,6 +1,6 @@
 # 项目状态报告
 
-> 最后更新：2026-06-23 | 当前版本：v1.4 | 分支：main
+> 最后更新：2026-06-24 | 当前版本：v1.6 | 分支：main
 
 ---
 
@@ -8,9 +8,9 @@
 
 | 维度 | 状态 |
 |------|:--:|
-| 后端编译 | ✅ BUILD SUCCESS (74 源文件) |
-| 前端构建 | ✅ BUILD SUCCESS (26 源文件) |
-| 数据库 | ✅ 12 张表 + 种子数据 |
+| 后端编译 | ✅ BUILD SUCCESS (79 源文件) |
+| 前端构建 | ✅ BUILD SUCCESS (31 源文件) |
+| 数据库 | ✅ 12 张表 + 种子数据 + 测试报销数据 |
 | 运行状态 | ✅ 前后端均正常运行 |
 | 远程仓库 | ✅ https://github.com/musuo6cf/expense-system.git |
 
@@ -22,26 +22,27 @@
 
 ```
 expense-server/src/main/java/com/company/expense/
-├── controller/    7 个
-│   AuthController          登录 / 登出
-│   SysUserController       用户 CRUD + 修改密码
-│   ExpenseController       报销单 CRUD + 提交
-│   AttachmentController    附件上传 / 下载 / 删除
-│   ApprovalController      主管审批（通过/驳回）
-│   FinanceApprovalController 财务审核（通过/驳回）
-│   PaymentController       付款管理
-├── service/       7 接口 + 7 实现
+├── controller/    10 个
+│   AuthController              登录 / 登出
+│   SysUserController           用户 CRUD + 修改密码（含角色分配）
+│   ExpenseController           报销单 CRUD + 提交
+│   AttachmentController        附件上传 / 下载 / 删除
+│   ApprovalController          主管审批（通过/驳回）
+│   FinanceApprovalController   财务审核（通过/驳回）
+│   PaymentController           付款管理
+│   BatchReviewController       财务批量审批（预检查 + 执行）
+│   SysDepartmentController     部门列表
+│   SysRoleController           角色列表
+├── service/       9 接口 + 9 实现
+│   + BatchReviewService        批量审批服务
 ├── mapper/        12 个 MyBatis Plus Mapper
 ├── entity/        12 个实体
-├── dto/           7 个请求 DTO
-├── vo/            7 个响应 VO
+├── dto/           8 个请求 DTO
+│   + BatchReviewExecuteDTO
+├── vo/            10 个响应 VO
+│   + BatchReviewPreviewVO / BatchReviewResultVO
 ├── config/        5 个配置类
-│   JacksonConfig          Long→String 序列化（修复 JS 精度丢失）
-│   MyBatisPlusConfig      分页插件
-│   CorsConfig             跨域
-│   WebMvcConfig           JWT 拦截器 + 下载路径排除
-│   PasswordConfig         BCrypt
-├── exception/     BusinessException + GlobalExceptionHandler
+├── exception/     BusinessException + GlobalExceptionHandler（含重复键处理）
 ├── interceptor/   JwtInterceptor
 └── utils/         JwtUtil
 ```
@@ -50,66 +51,91 @@ expense-server/src/main/java/com/company/expense/
 
 ```
 expense-web/src/
-├── api/           7 个模块
-│   auth.ts        login / logout
-│   user.ts        getUserById / updatePassword
-│   expense.ts     报销 CRUD + 附件上传/下载/删除 + 提交
-│   approval.ts    主管审批 pending/pass/reject/detail
-│   finance.ts     财务审核 pending/pass/reject/detail
-│   payment.ts     付款 pending/detail/pay
-│   dashboard.ts   首页统计（角色感知）
-├── views/         8 个页面组
-│   login/         登录页
-│   dashboard/     首页（财务/非财务双布局 + ECharts）
-│   expense/       报销列表 / 编辑（含附件上传）/ 详情
-│   approval/      待审批列表 / 审批详情（含附件查看 + 通过/驳回）
-│   finance/       财务审核列表 / 审核详情（含附件） / 已付款记录
-│   payment/       待付款列表 / 付款详情
-│   profile/       个人中心 / 修改密码
-├── stores/user.ts Pinia 用户状态（持久化 localStorage）
-├── router/        18 条路由 + 导航守卫
-├── layout/        角色感知菜单布局
-└── utils/request.ts Axios 封装（Token 自动携带 + 401 拦截）
+├── api/           9 个模块
+│   auth.ts / user.ts / expense.ts / approval.ts
+│   finance.ts / payment.ts / dashboard.ts
+│   finance-batch.ts       批量审批 API
+├── components/    1 个
+│   BatchReviewDialog.vue  批量审批弹窗
+├── views/         9 个页面组
+│   login/ / dashboard/ / expense/ / approval/
+│   finance/ / payment/ / profile/
+│   user/                  用户管理列表 / 编辑（ADMIN only）
+├── stores/user.ts
+├── router/        21 条路由
+├── layout/        角色感知菜单（含用户管理入口）
+└── utils/request.ts
 ```
 
-### 报销状态流转
+### API 全览
 
-```
-草稿(0) → 待主管审批(1) → 待财务审核(3) → 待付款(5) → 已付款(6)
-                ↘ 主管驳回(2)      ↘ 财务驳回(4)
+| 模块 | 方法 | 路径 | 说明 |
+|------|------|------|------|
+| Auth | POST | /api/auth/login | 登录 |
+| Auth | POST | /api/auth/logout | 登出 |
+| User | GET | /api/user/page | 分页用户（含角色信息） |
+| User | GET | /api/user/{id} | 用户详情（含角色） |
+| User | POST | /api/user | 新增用户（含角色分配） |
+| User | PUT | /api/user | 编辑用户（含角色更新） |
+| User | DELETE | /api/user/{id} | 删除用户（含角色清理） |
+| User | PUT | /api/user/password | 修改密码 |
+| Department | GET | /api/department/list | 部门列表 |
+| Role | GET | /api/role/list | 角色列表 |
+| Expense | POST | /api/expense | 新建报销 |
+| Expense | GET | /api/expense/page | 分页查询 |
+| Expense | GET | /api/expense/{id} | 报销详情 |
+| Expense | PUT | /api/expense/{id} | 编辑报销 |
+| Expense | DELETE | /api/expense/{id} | 删除报销 |
+| Expense | POST | /api/expense/submit/{id} | 提交报销 |
+| Attachment | POST | /api/attachment/upload | 上传附件 |
+| Attachment | GET | /api/attachment/expense/{expenseId} | 附件列表 |
+| Attachment | DELETE | /api/attachment/{id} | 删除附件 |
+| Attachment | GET | /api/attachment/download/{id} | 下载/预览 |
+| Approval | GET | /api/approval/pending | 待审批列表 |
+| Approval | GET | /api/approval/{expenseId} | 审批详情（含费用明细） |
+| Approval | POST | /api/approval/pass | 审批通过 |
+| Approval | POST | /api/approval/reject | 审批驳回 |
+| Finance | GET | /api/finance/pending | 待审核列表 |
+| Finance | GET | /api/finance/{expenseId} | 审核详情（含费用明细） |
+| Finance | POST | /api/finance/pass | 审核通过 |
+| Finance | POST | /api/finance/reject | 审核驳回 |
+| BatchReview | POST | /api/finance/batch-review/preview | 批量审批预检查 |
+| BatchReview | POST | /api/finance/batch-review/execute | 批量审批执行（仅驳回超标单） |
+| Payment | GET | /api/payment/pending | 待付款列表 |
+| Payment | GET | /api/payment/{expenseId} | 付款详情（含申请人卡号） |
+| Payment | POST | /api/payment/pay | 确认付款（固定工行转账） |
 
-特殊：主管提交 → 直接进入财务审核(3)，跳过主管审批
-```
+### 批量审批规则
+
+| 费用类型 | 上限 |
+|----------|:--:|
+| 餐饮费用 | 600 |
+| 办公费用 | 1000 |
+| 招待费用 | 600 |
+| 住宿费用 | 1000 |
+| 交通费用 | 2000 |
+| 培训费用 | 500 |
+| 其他费用 | 500 |
+
+- 任意明细超出标准 → 驳回
+- 全部明细符合标准 → 保留待财务人工审核（不自动通过）
 
 ---
 
 ## 3. 测试账号
 
-| 用户名 | 密码 | 角色 | 部门 | 菜单 |
-|--------|------|------|------|------|
-| `admin` | `admin123` | ADMIN | 总经办 | 首页/报销管理/系统设置 |
-| `employee1` | `employee` | EMPLOYEE | 技术部 | 首页/报销管理/系统设置 |
-| `manager1` | `manager` | MANAGER | 技术部 | 首页/报销管理/审批中心/系统设置 |
-| `finance1` | `finance` | FINANCE | 财务部 | 首页/财务中心/系统设置 |
+| 用户名 | 密码 | 角色 | 部门 |
+|--------|------|------|------|
+| `admin` | `admin1` | ADMIN | 总经办 |
+| `employee1` | `employee` | EMPLOYEE | 技术部 |
+| `employee2` | — | EMPLOYEE | 技术部 |
+| `manager1` | `manager` | MANAGER | 技术部 |
+| `manager2` | — | MANAGER | 市场部 |
+| `finance1` | `finance` | FINANCE | 财务部 |
 
 ---
 
-## 4. 已修复的关键问题
-
-| # | 问题 | 根因 | 修复 |
-|---|------|------|------|
-| 1 | 点击报销单显示"不存在" | JS Number 精度丢失（Snowflake 19位ID） | Jackson Long→String + 前端 String ID |
-| 2 | 首页弹三次"无权限访问" | Dashboard 无条件调用角色受限 API | 根据 roles 判断是否调用 |
-| 3 | 没有提交按钮 | 缺失 submitExpense 接口 | 后端新增 POST /api/expense/submit/{id} + 前端按钮 |
-| 4 | 新建报销无附件上传 | 创建后跳转列表而非编辑页 | createExpense 返回 ID → 跳转编辑页（含上传） |
-| 5 | 主管审批后卡住 | 主管不能审自己的单子 | 主管提交直接进入财务审核(3) |
-| 6 | 财务端看不到已付款 | pageExpenses 强制过滤 applicant_id | FINANCE/ADMIN 跳过申请人过滤 |
-| 7 | 审批/财务页无附件展示 | 未调用 getAttachments | 审批详情和财务详情均加附件卡片 |
-| 8 | 附件无法在线查看 | 无下载端点 | GET /api/attachment/download/{id} + 前端链接 |
-
----
-
-## 5. 快速启动（下次继续工作）
+## 4. 快速启动（下次继续工作）
 
 ### 环境
 - JDK 17 | Maven 3.9 | Node 18+ | MySQL 8.3 (服务名 MySQL83)
@@ -117,9 +143,8 @@ expense-web/src/
 ### 启动后端
 ```powershell
 cd "D:\Project\enterprise system\expense-server"
-mvn spring-boot:run
+C:\Users\30920\.maven\bin\mvn.cmd spring-boot:run
 # → http://localhost:8080/api
-# → API 文档: http://localhost:8080/api/doc.html
 ```
 
 ### 启动前端
@@ -129,10 +154,23 @@ npm run dev
 # → http://localhost:3000
 ```
 
-### Maven 路径
-```
-C:\Users\30920\.maven\bin\mvn.cmd
-```
+### 数据库
+- MySQL 账号：root / 151158
+- 数据库名：expense_db
+- 初始化：`init.sql` 建表 + 种子数据
+- 迁移：`V2__add_icbc_card_no.sql` 工行卡号字段
+
+---
+
+## 5. 关键约定
+
+1. Long ID 必须序列化为 String（JacksonConfig），前端 ID 用 String
+2. FINANCE/ADMIN 的 pageExpenses 不加 applicantId 过滤
+3. 主管提交直接进入待财务审核，跳过主管审批
+4. 附件下载路径已排除 JWT 拦截
+5. 批量审批只驳回超标单，合规单需财务人工审核
+6. 付款仅支持"向工商银行卡号转账"，自动显示申请人卡号
+7. 不要修改已有表结构（新列通过迁移脚本添加）
 
 ---
 
@@ -140,34 +178,22 @@ C:\Users\30920\.maven\bin\mvn.cmd
 
 | # | 项目 | 优先级 |
 |---|------|:---:|
-| 1 | `dist/` 和 `target/` 未完全被 .gitignore 排除 | 中 |
-| 2 | 附件下载无需 Token（已排除拦截器） | 低 |
-| 3 | 缺少操作日志记录功能 | 低 |
-| 4 | 审批记录在 expense/detail 页未展示真实数据 | 中 |
-| 5 | 没有报销单提交后的撤销/撤回功能 | 中 |
-| 6 | 首次启动需手动生成 BCrypt 密码哈希 | 低 |
+| 1 | 缺少操作日志记录功能 | 中 |
+| 2 | 审批记录在 expense/detail 页未展示真实数据 | 中 |
+| 3 | 没有报销单提交后的撤销/撤回功能 | 中 |
+| 4 | 批量审批不处理通过（需人工逐笔审核） | 设计如此 |
+| 5 | Excel 导出 | 低 |
+| 6 | WebSocket 消息推送 | 低 |
 
 ---
 
-## 7. 下一步开发方向
-
-- [ ] 操作日志记录（登录日志 + 操作日志）
-- [ ] Excel 导出
-- [ ] 部门预算控制（超额预警）
-- [ ] WebSocket 消息推送
-- [ ] Redis 缓存集成
-- [ ] Docker 部署方案
-- [ ] Flowable 工作流引擎
-
----
-
-## 8. Git 历史
+## 7. Git 标签历史
 
 ```
-882eb95 debug3                                    ← HEAD, main, v1.4
-e16ec4f feat(dashboard): debug2
-032eeca feat(profile): debug 1
+v1.6  batch finance review / user management / ICBC card
+v1.5  ICBC card / payment simplification / expense items
+v1.4  debug3 (dashboard/profile fixes)
 ...
 ```
 
-远程：`git@github.com:musuo6cf/expense-system.git`
+远程：`https://github.com/musuo6cf/expense-system.git`

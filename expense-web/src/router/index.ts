@@ -77,6 +77,21 @@ const router = createRouter({
           path: 'profile',
           name: 'Profile',
           component: () => import('@/views/profile/index.vue')
+        },
+        {
+          path: 'user',
+          name: 'UserList',
+          component: () => import('@/views/user/index.vue')
+        },
+        {
+          path: 'user/edit',
+          name: 'UserCreate',
+          component: () => import('@/views/user/edit.vue')
+        },
+        {
+          path: 'user/edit/:id',
+          name: 'UserEdit',
+          component: () => import('@/views/user/edit.vue')
         }
       ]
     }

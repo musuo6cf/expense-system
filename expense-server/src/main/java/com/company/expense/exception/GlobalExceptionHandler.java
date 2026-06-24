@@ -3,6 +3,7 @@ package com.company.expense.exception;
 import com.company.expense.common.Result;
 import com.company.expense.common.ResultCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -41,6 +42,18 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         log.warn("参数绑定失败: {}", message);
         return Result.fail(ResultCode.BAD_REQUEST.getCode(), message);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        String msg = e.getMessage();
+        if (msg != null && msg.contains("uk_username")) {
+            log.warn("用户名重复: {}", msg);
+            return Result.fail(ResultCode.USERNAME_EXISTS);
+        }
+        log.warn("数据完整性冲突: {}", msg);
+        return Result.fail(ResultCode.BAD_REQUEST.getCode(), "数据冲突，请检查输入");
     }
 
     @ExceptionHandler(Exception.class)

@@ -2,7 +2,7 @@
 
 # 小型企业费用报销管理系统 AI 开发规范
 
-Version: 2.0
+Version: 2.1
 
 ------
 
@@ -136,11 +136,11 @@ expense-web/
 ├── vite.config.ts
 ├── index.html
 └── src
-    ├── api           # 7 个 API 模块
+    ├── api           # 9 个 API 模块
     ├── assets
     ├── components
     ├── layout        # 角色感知菜单布局
-    ├── router        # 18 条路由 + 导航守卫
+    ├── router        # 21 条路由 + 导航守卫
     ├── stores        # Pinia 用户状态（持久化）
     ├── utils         # Axios 封装
     └── views
@@ -150,7 +150,8 @@ expense-web/
         ├── approval
         ├── finance
         ├── payment
-        └── profile
+        ├── profile
+        └── user
 ```
 
 ## Backend
@@ -161,13 +162,13 @@ expense-server/
 └── src/main/java/com/company/expense
     ├── common        # Result / ResultCode
     ├── config        # MyBatisPlus / CORS / WebMvc / Password / Jackson
-    ├── controller    # 7 个 Controller
-    ├── service       # 7 个接口
-    ├── service.impl  # 7 个实现
+    ├── controller    # 10 个 Controller
+    ├── service       # 9 个接口
+    ├── service.impl  # 9 个实现
     ├── mapper        # 12 个 Mapper
     ├── entity        # 12 个 Entity
-    ├── dto           # 7 个 DTO
-    ├── vo            # 7 个 VO
+    ├── dto           # 8 个 DTO
+    ├── vo            # 10 个 VO
     ├── exception     # BusinessException / GlobalExceptionHandler
     ├── interceptor   # JwtInterceptor
     ├── utils         # JwtUtil
@@ -346,6 +347,26 @@ RESTful 风格：GET / POST / PUT / DELETE
 | Payment | GET | /api/payment/pending | 待付款列表 |
 | Payment | GET | /api/payment/{expenseId} | 付款详情 |
 | Payment | POST | /api/payment/pay | 确认付款 |
+| Department | GET | /api/department/list | 部门列表 |
+| Role | GET | /api/role/list | 角色列表 |
+| BatchReview | POST | /api/finance/batch-review/preview | 批量审批预检查 |
+| BatchReview | POST | /api/finance/batch-review/execute | 批量审批执行 |
+
+------
+
+# 批量审批规则
+
+费用标准（任意明细超出标准 → 驳回，全部符合 → 保留待人工审核）：
+
+| 费用类型 | 上限 |
+|----------|:--:|
+| 餐饮费用 | 600 |
+| 办公费用 | 1000 |
+| 招待费用 | 600 |
+| 住宿费用 | 1000 |
+| 交通费用 | 2000 |
+| 培训费用 | 500 |
+| 其他费用 | 500 |
 
 ------
 
@@ -397,7 +418,7 @@ Phase 7 🔜 增强 (Redis 缓存 / WebSocket / Docker)
 
 | 用户名 | 密码 | 角色 |
 |--------|------|------|
-| admin | admin123 | ADMIN |
+| admin | admin1 | ADMIN |
 | employee1 | employee | EMPLOYEE |
 | manager1 | manager | MANAGER |
 | finance1 | finance | FINANCE |

@@ -61,6 +61,7 @@ function handleLogout() {
           <el-sub-menu index="system">
             <template #title>系统设置</template>
             <el-menu-item index="/profile">个人中心</el-menu-item>
+            <el-menu-item v-if="userStore.roles.includes('ADMIN')" index="/user">用户管理</el-menu-item>
           </el-sub-menu>
         </el-menu>
       </el-aside>

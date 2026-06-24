@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import { getPendingList } from '@/api/finance'
+import BatchReviewDialog from '@/components/BatchReviewDialog.vue'
 
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const list = ref<any[]>([])
+const batchVisible = ref(false)
 
 const statusMap: Record<number, { text: string; type: string }> = {
   0: { text: '草稿', type: 'info' },
@@ -35,6 +39,11 @@ function handleView(id: number) {
   router.push(`/finance/${id}`)
 }
 
+function handleBatchDone() {
+  batchVisible.value = false
+  fetchData()
+}
+
 onMounted(() => fetchData())
 </script>
 
@@ -44,7 +53,16 @@ onMounted(() => fetchData())
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
           <span>财务审核</span>
-          <el-button @click="fetchData">刷新</el-button>
+          <div>
+            <el-button
+              v-if="userStore.roles.includes('FINANCE')"
+              type="warning"
+              @click="batchVisible = true"
+            >
+              批量审批
+            </el-button>
+            <el-button @click="fetchData">刷新</el-button>
+          </div>
         </div>
       </template>
 
@@ -77,5 +95,7 @@ onMounted(() => fetchData())
         暂无待审核报销单
       </div>
     </el-card>
+
+    <BatchReviewDialog v-model:visible="batchVisible" @done="handleBatchDone" />
   </div>
 </template>

@@ -35,7 +35,7 @@ const totalAmount = computed(() => {
   return items.value.reduce((sum, item) => sum + (Number(item.amount) || 0), 0).toFixed(2)
 })
 
-const typeOptions = ['差旅费', '办公费用', '招待费用', '培训费用', '交通费用', '其他费用']
+const typeOptions = ['餐饮费用', '住宿费用', '办公费用', '招待费用', '培训费用', '交通费用', '其他费用']
 
 function addItem() {
   items.value.push({ expenseType: '', amount: 0, expenseDate: '', description: '' })

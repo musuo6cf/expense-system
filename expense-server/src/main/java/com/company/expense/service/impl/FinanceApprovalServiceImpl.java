@@ -8,8 +8,10 @@ import com.company.expense.entity.Expense;
 import com.company.expense.entity.SysDepartment;
 import com.company.expense.entity.SysRole;
 import com.company.expense.entity.SysUser;
+import com.company.expense.entity.ExpenseItem;
 import com.company.expense.entity.SysUserRole;
 import com.company.expense.exception.BusinessException;
+import com.company.expense.mapper.ExpenseItemMapper;
 import com.company.expense.mapper.ApprovalRecordMapper;
 import com.company.expense.mapper.ExpenseMapper;
 import com.company.expense.mapper.SysDepartmentMapper;
@@ -41,6 +43,7 @@ public class FinanceApprovalServiceImpl implements FinanceApprovalService {
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysDepartmentMapper sysDepartmentMapper;
+    private final ExpenseItemMapper expenseItemMapper;
 
     @Override
     public List<FinanceApprovalVO> pendingExpenses(Long userId) {
@@ -153,6 +156,21 @@ public class FinanceApprovalServiceImpl implements FinanceApprovalService {
         }
 
         if (includeRecords) {
+            // expense items
+            LambdaQueryWrapper<ExpenseItem> itemWrapper = new LambdaQueryWrapper<>();
+            itemWrapper.eq(ExpenseItem::getExpenseId, expense.getId());
+            List<ExpenseItem> items = expenseItemMapper.selectList(itemWrapper);
+            vo.setItems(items.stream().map(item -> {
+                FinanceApprovalVO.ExpenseItemVO itemVO = new FinanceApprovalVO.ExpenseItemVO();
+                itemVO.setId(item.getId());
+                itemVO.setExpenseType(item.getExpenseType());
+                itemVO.setAmount(item.getAmount());
+                itemVO.setExpenseDate(item.getExpenseDate());
+                itemVO.setDescription(item.getDescription());
+                return itemVO;
+            }).collect(Collectors.toList()));
+
+            // approval records
             LambdaQueryWrapper<ApprovalRecord> recordWrapper = new LambdaQueryWrapper<>();
             recordWrapper.eq(ApprovalRecord::getExpenseId, expense.getId())
                     .orderByDesc(ApprovalRecord::getApproveTime);

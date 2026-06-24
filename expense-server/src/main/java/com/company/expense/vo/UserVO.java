@@ -12,6 +12,7 @@ public class UserVO {
     private String realName;
     private String phone;
     private String email;
+    private String icbcCardNo;
     private Long departmentId;
     private String departmentName;
     private Integer status;

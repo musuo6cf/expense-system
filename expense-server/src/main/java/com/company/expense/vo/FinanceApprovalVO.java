@@ -3,6 +3,7 @@ package com.company.expense.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,8 +20,18 @@ public class FinanceApprovalVO {
     private BigDecimal totalAmount;
     private String reason;
     private Integer status;
+    private List<ExpenseItemVO> items;
     private List<Record> records;
     private LocalDateTime createTime;
+
+    @Data
+    public static class ExpenseItemVO {
+        private Long id;
+        private String expenseType;
+        private BigDecimal amount;
+        private LocalDate expenseDate;
+        private String description;
+    }
 
     @Data
     public static class Record {

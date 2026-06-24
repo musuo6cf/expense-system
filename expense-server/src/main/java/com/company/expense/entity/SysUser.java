@@ -19,6 +19,7 @@ public class SysUser {
     private String realName;
     private String phone;
     private String email;
+    private String icbcCardNo;
     private Long departmentId;
     private Integer status;
     private LocalDateTime createTime;

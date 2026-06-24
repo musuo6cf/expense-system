@@ -66,6 +66,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             vo.setRealName(user.getRealName());
             vo.setPhone(user.getPhone());
             vo.setEmail(user.getEmail());
+            vo.setIcbcCardNo(user.getIcbcCardNo());
             vo.setDepartmentId(user.getDepartmentId());
             vo.setDepartmentName(finalDeptMap.get(user.getDepartmentId()));
             vo.setStatus(user.getStatus());
@@ -90,6 +91,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         vo.setRealName(user.getRealName());
         vo.setPhone(user.getPhone());
         vo.setEmail(user.getEmail());
+        vo.setIcbcCardNo(user.getIcbcCardNo());
         vo.setDepartmentId(user.getDepartmentId());
         vo.setStatus(user.getStatus());
         vo.setCreateTime(user.getCreateTime());

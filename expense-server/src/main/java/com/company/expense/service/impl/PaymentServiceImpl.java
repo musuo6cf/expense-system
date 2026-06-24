@@ -125,6 +125,7 @@ public class PaymentServiceImpl implements PaymentService {
         SysUser applicant = sysUserMapper.selectById(expense.getApplicantId());
         if (applicant != null) {
             vo.setApplicantName(applicant.getRealName());
+            vo.setApplicantIcbcCardNo(applicant.getIcbcCardNo());
         }
         SysDepartment dept = sysDepartmentMapper.selectById(expense.getDepartmentId());
         if (dept != null) {

@@ -14,6 +14,7 @@ public class PaymentVO {
     private String title;
     private Long applicantId;
     private String applicantName;
+    private String applicantIcbcCardNo;
     private Long departmentId;
     private String departmentName;
     private BigDecimal totalAmount;

@@ -11,6 +11,7 @@ const userStore = useUserStore()
 const userInfo = ref<any>({
   phone: '',
   email: '',
+  icbcCardNo: '',
   departmentName: ''
 })
 
@@ -28,6 +29,7 @@ onMounted(async () => {
     userInfo.value = {
       phone: d.phone || '',
       email: d.email || '',
+      icbcCardNo: d.icbcCardNo || '',
       departmentName: d.departmentName || ''
     }
   } catch { /* ignore */ }
@@ -68,6 +70,7 @@ async function handleChangePassword() {
         <el-descriptions-item label="姓名">{{ userStore.realName }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ userInfo.phone || '-' }}</el-descriptions-item>
         <el-descriptions-item label="邮箱">{{ userInfo.email || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="工商银行卡号">{{ userInfo.icbcCardNo || '-' }}</el-descriptions-item>
         <el-descriptions-item label="部门">{{ userInfo.departmentName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="角色">
           <el-tag v-for="r in userStore.roles" :key="r" size="small" style="margin-right: 4px">{{ r }}</el-tag>

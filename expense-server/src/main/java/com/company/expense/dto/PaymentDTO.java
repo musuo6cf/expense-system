@@ -13,6 +13,5 @@ public class PaymentDTO {
     @NotBlank(message = "付款方式不能为空")
     private String paymentMethod;
 
-    @NotBlank(message = "银行流水号不能为空")
     private String bankTransactionNo;
 }

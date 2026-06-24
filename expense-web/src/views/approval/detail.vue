@@ -91,6 +91,19 @@ onMounted(() => fetchDetail())
       </el-descriptions>
     </el-card>
 
+    <!-- Expense Items -->
+    <el-card style="margin-bottom: 16px">
+      <template #header><span>费用明细</span></template>
+      <el-table :data="detail.items" border stripe>
+        <el-table-column prop="expenseType" label="费用类型" width="140" />
+        <el-table-column prop="amount" label="金额" width="120">
+          <template #default="{ row }">¥{{ row.amount }}</template>
+        </el-table-column>
+        <el-table-column prop="expenseDate" label="日期" width="140" />
+        <el-table-column prop="description" label="说明" />
+      </el-table>
+    </el-card>
+
     <!-- Attachments -->
     <el-card style="margin-bottom: 16px">
       <template #header><span>凭证附件</span></template>
@@ -103,34 +116,6 @@ onMounted(() => fetchDetail())
           {{ (att.fileSize / 1024).toFixed(1) }}KB · {{ att.uploadTime }}
         </span>
       </div>
-    </el-card>
-
-    <!-- Approval History -->
-    <el-card style="margin-bottom: 16px">
-      <template #header><span>审批历史</span></template>
-      <div v-if="!detail.records || detail.records.length === 0" style="color: #909399">
-        暂无审批记录
-      </div>
-      <el-timeline v-else>
-        <el-timeline-item
-          v-for="(r, i) in detail.records"
-          :key="i"
-          :type="r.approveResult === 1 ? 'success' : 'danger'"
-          :timestamp="r.approveTime"
-        >
-          <div>
-            <strong>{{ r.approverName }}</strong>
-            <el-tag
-              :type="r.approveResult === 1 ? 'success' : 'danger'"
-              size="small"
-              style="margin-left: 8px"
-            >
-              {{ r.approveResultText }}
-            </el-tag>
-          </div>
-          <div v-if="r.comment" style="color: #606266; margin-top: 4px">{{ r.comment }}</div>
-        </el-timeline-item>
-      </el-timeline>
     </el-card>
 
     <!-- Action (only for PENDING_MANAGER status) -->

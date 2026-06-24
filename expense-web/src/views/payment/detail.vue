@@ -9,11 +9,8 @@ const router = useRouter()
 const expenseId = String(route.params.id)
 
 const detail = ref<any>(null)
-const paymentMethod = ref('银行转账')
-const bankTransactionNo = ref('')
+const paymentMethod = ref('向工商银行卡号转账')
 const submitting = ref(false)
-
-const payOptions = ['银行转账', '现金', '支付宝']
 
 const statusMap: Record<number, { text: string; type: string }> = {
   0: { text: '草稿', type: 'info' },
@@ -35,10 +32,6 @@ async function fetchDetail() {
 }
 
 async function handlePay() {
-  if (!bankTransactionNo.value.trim()) {
-    ElMessage.warning('请输入银行流水号')
-    return
-  }
   try {
     await ElMessageBox.confirm(
       `确认付款 ¥${detail.value.totalAmount}？`,
@@ -50,7 +43,7 @@ async function handlePay() {
   }
   submitting.value = true
   try {
-    await payExpense(expenseId, paymentMethod.value, bankTransactionNo.value)
+    await payExpense(expenseId, paymentMethod.value, '')
     ElMessage.success('付款成功')
     router.push('/payment')
   } finally {
@@ -110,12 +103,10 @@ onMounted(() => fetchDetail())
       <template #header><span>确认付款</span></template>
       <el-form label-width="100px">
         <el-form-item label="付款方式">
-          <el-select v-model="paymentMethod" style="width: 200px">
-            <el-option v-for="opt in payOptions" :key="opt" :label="opt" :value="opt" />
-          </el-select>
+          <span>向工商银行卡号转账</span>
         </el-form-item>
-        <el-form-item label="银行流水号" required>
-          <el-input v-model="bankTransactionNo" placeholder="请输入银行流水号" maxlength="100" />
+        <el-form-item label="收款卡号">
+          <span>{{ detail.applicantIcbcCardNo || '未登记' }}</span>
         </el-form-item>
       </el-form>
       <div style="text-align: center; margin-top: 16px">

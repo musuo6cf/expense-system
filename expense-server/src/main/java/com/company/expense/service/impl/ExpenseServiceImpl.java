@@ -18,6 +18,7 @@ import com.company.expense.mapper.SysRoleMapper;
 import com.company.expense.mapper.SysUserMapper;
 import com.company.expense.mapper.SysUserRoleMapper;
 import com.company.expense.service.ExpenseService;
+import com.company.expense.vo.ExpenseExportVO;
 import com.company.expense.vo.ExpenseVO;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -205,6 +206,76 @@ public class ExpenseServiceImpl implements ExpenseService {
         int targetStatus = isManager(userId) ? Expense.STATUS_PENDING_FINANCE : Expense.STATUS_PENDING_MANAGER;
         expense.setStatus(targetStatus);
         expenseMapper.updateById(expense);
+    }
+
+    @Override
+    public List<ExpenseExportVO> exportExpenses(Integer status, String keyword, Long userId) {
+        LambdaQueryWrapper<Expense> wrapper = new LambdaQueryWrapper<>();
+        if (!isFinanceOrAdmin(userId)) {
+            wrapper.eq(Expense::getApplicantId, userId);
+        }
+        if (status != null) {
+            wrapper.eq(Expense::getStatus, status);
+        }
+        if (StringUtils.isNotBlank(keyword)) {
+            wrapper.and(w -> w.like(Expense::getTitle, keyword)
+                    .or()
+                    .like(Expense::getExpenseNo, keyword));
+        }
+        wrapper.orderByDesc(Expense::getCreateTime);
+
+        List<Expense> expenses = expenseMapper.selectList(wrapper);
+        Map<Long, String> deptMap = buildDeptMap(expenses);
+
+        // Build applicant name map in batch
+        Map<Long, String> userMap = expenses.stream()
+                .map(Expense::getApplicantId)
+                .distinct()
+                .map(sysUserMapper::selectById)
+                .filter(u -> u != null)
+                .collect(Collectors.toMap(SysUser::getId, SysUser::getRealName));
+
+        // Load all items for all expenses in one go
+        List<Long> expenseIds = expenses.stream().map(Expense::getId).collect(Collectors.toList());
+        Map<Long, List<ExpenseItem>> itemsMap = Map.of();
+        if (!expenseIds.isEmpty()) {
+            LambdaQueryWrapper<ExpenseItem> itemWrapper = new LambdaQueryWrapper<>();
+            itemWrapper.in(ExpenseItem::getExpenseId, expenseIds);
+            itemsMap = expenseItemMapper.selectList(itemWrapper).stream()
+                    .collect(Collectors.groupingBy(ExpenseItem::getExpenseId));
+        }
+
+        List<ExpenseExportVO> result = new ArrayList<>();
+        for (Expense expense : expenses) {
+            List<ExpenseItem> items = itemsMap.getOrDefault(expense.getId(), List.of());
+            String statusText = switch (expense.getStatus()) {
+                case Expense.STATUS_DRAFT -> "草稿";
+                case Expense.STATUS_PENDING_MANAGER -> "待主管审批";
+                case Expense.STATUS_MANAGER_REJECTED -> "主管驳回";
+                case Expense.STATUS_PENDING_FINANCE -> "待财务审核";
+                case Expense.STATUS_FINANCE_REJECTED -> "财务驳回";
+                case Expense.STATUS_PENDING_PAYMENT -> "待付款";
+                case Expense.STATUS_PAID -> "已付款";
+                case Expense.STATUS_ARCHIVED -> "已归档";
+                default -> "未知";
+            };
+
+            for (ExpenseItem item : items) {
+                ExpenseExportVO vo = new ExpenseExportVO();
+                vo.setExpenseNo(expense.getExpenseNo());
+                vo.setTitle(expense.getTitle());
+                vo.setApplicantName(userMap.getOrDefault(expense.getApplicantId(), ""));
+                vo.setDepartmentName(deptMap.getOrDefault(expense.getDepartmentId(), ""));
+                vo.setExpenseType(item.getExpenseType());
+                vo.setAmount(item.getAmount());
+                vo.setExpenseDate(item.getExpenseDate());
+                vo.setItemDescription(item.getDescription());
+                vo.setStatusText(statusText);
+                vo.setCreateTime(expense.getCreateTime());
+                result.add(vo);
+            }
+        }
+        return result;
     }
 
     private boolean isFinanceOrAdmin(Long userId) {

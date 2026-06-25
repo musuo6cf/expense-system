@@ -17,6 +17,10 @@ request.interceptors.request.use((config) => {
 
 request.interceptors.response.use(
   (response) => {
+    // Blob response (e.g. file download) — pass through as-is
+    if (response.config.responseType === 'blob') {
+      return response
+    }
     const res = response.data
     if (res.code !== 200) {
       ElMessage.error(res.message || '请求失败')

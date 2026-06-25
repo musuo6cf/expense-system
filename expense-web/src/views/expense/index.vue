@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getExpensePage, deleteExpense, submitExpense } from '@/api/expense'
+import { getExpensePage, deleteExpense, submitExpense, exportExpenses } from '@/api/expense'
 
 const router = useRouter()
 
@@ -63,6 +63,15 @@ async function handleDelete(id: number) {
   } catch { /* cancelled */ }
 }
 
+async function handleExport() {
+  try {
+    await exportExpenses()
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  }
+}
+
 function handleSizeChange(val: number) {
   size.value = val
   fetchList()
@@ -89,7 +98,10 @@ onMounted(() => {
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
           <span>报销列表</span>
-          <el-button type="primary" @click="handleCreate">新增报销</el-button>
+          <div>
+            <el-button type="success" @click="handleExport">导出 Excel</el-button>
+            <el-button type="primary" @click="handleCreate">新增报销</el-button>
+          </div>
         </div>
       </template>
 

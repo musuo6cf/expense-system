@@ -1,13 +1,16 @@
 package com.company.expense.controller;
 
+import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.company.expense.common.Result;
 import com.company.expense.dto.ExpenseDTO;
 import com.company.expense.service.ExpenseService;
+import com.company.expense.vo.ExpenseExportVO;
 import com.company.expense.vo.ExpenseVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +22,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Tag(name = "报销管理", description = "报销单CRUD相关接口")
 @RestController
@@ -79,5 +89,27 @@ public class ExpenseController {
         Long userId = (Long) request.getAttribute("userId");
         expenseService.submitExpense(id, userId);
         return Result.ok();
+    }
+
+    @Operation(summary = "导出报销单为Excel")
+    @GetMapping("/export")
+    public void export(@RequestParam(required = false) Integer status,
+                       @RequestParam(required = false) String keyword,
+                       HttpServletRequest request,
+                       HttpServletResponse response) throws IOException {
+        Long userId = (Long) request.getAttribute("userId");
+        List<ExpenseExportVO> list = expenseService.exportExpenses(status, keyword, userId);
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String fileName = URLEncoder.encode("报销导出_" + timestamp + ".xlsx", StandardCharsets.UTF_8)
+                .replace("+", "%20");
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+        EasyExcel.write(response.getOutputStream(), ExpenseExportVO.class)
+                .sheet("报销明细")
+                .doWrite(list);
     }
 }

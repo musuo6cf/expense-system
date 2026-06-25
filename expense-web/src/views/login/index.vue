@@ -8,8 +8,8 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const form = ref({
-  username: 'admin',
-  password: 'admin123'
+  username: '',
+  password: ''
 })
 const loading = ref(false)
 

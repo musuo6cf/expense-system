@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getExpensePage } from '@/api/expense'
+import { getExpensePage, exportExpenses } from '@/api/expense'
+import { ElMessage } from 'element-plus'
 
 const loading = ref(false)
 const list = ref<any[]>([])
@@ -20,6 +21,15 @@ async function fetchData() {
 }
 
 onMounted(() => fetchData())
+
+async function handleExport() {
+  try {
+    await exportExpenses({ status: 6 })
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  }
+}
 </script>
 
 <template>
@@ -28,7 +38,10 @@ onMounted(() => fetchData())
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
           <span>已付款记录</span>
-          <el-button @click="fetchData">刷新</el-button>
+          <div>
+            <el-button type="success" @click="handleExport">导出 Excel</el-button>
+            <el-button @click="fetchData">刷新</el-button>
+          </div>
         </div>
       </template>
 

@@ -57,3 +57,28 @@ export function deleteAttachment(id: number) {
 export function downloadAttachment(id: string) {
   window.open(`${import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'}/attachment/download/${id}`, '_blank')
 }
+
+export async function exportExpenses(params?: { status?: number; keyword?: string }) {
+  const res = await request.get('/expense/export', {
+    params,
+    responseType: 'blob'
+  })
+  // Parse filename from Content-Disposition header
+  const disposition = res.headers['content-disposition'] as string
+  let filename = 'expense_export.xlsx'
+  if (disposition) {
+    const match = disposition.match(/filename\*?=(?:UTF-8'')?([^;]+)/)
+    if (match) {
+      filename = decodeURIComponent(match[1])
+    }
+  }
+  // Trigger browser download
+  const url = window.URL.createObjectURL(res.data as Blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+}

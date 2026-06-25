@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 import { getPendingList } from '@/api/finance'
+import { exportExpenses } from '@/api/expense'
 import BatchReviewDialog from '@/components/BatchReviewDialog.vue'
 
 const router = useRouter()
@@ -44,6 +46,15 @@ function handleBatchDone() {
   fetchData()
 }
 
+async function handleExport() {
+  try {
+    await exportExpenses({ status: 3 })
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  }
+}
+
 onMounted(() => fetchData())
 </script>
 
@@ -54,6 +65,7 @@ onMounted(() => fetchData())
         <div style="display: flex; justify-content: space-between; align-items: center">
           <span>财务审核</span>
           <div>
+            <el-button type="success" @click="handleExport">导出 Excel</el-button>
             <el-button
               v-if="userStore.roles.includes('FINANCE')"
               type="warning"

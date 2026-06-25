@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { getPendingList } from '@/api/approval'
+import { exportExpenses } from '@/api/expense'
 
 const router = useRouter()
 const loading = ref(false)
@@ -35,6 +37,15 @@ function handleView(id: number) {
   router.push(`/approval/${id}`)
 }
 
+async function handleExport() {
+  try {
+    await exportExpenses({ status: 1 })
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  }
+}
+
 onMounted(() => fetchData())
 </script>
 
@@ -44,7 +55,10 @@ onMounted(() => fetchData())
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
           <span>待主管审批</span>
-          <el-button @click="fetchData">刷新</el-button>
+          <div>
+            <el-button type="success" @click="handleExport">导出 Excel</el-button>
+            <el-button @click="fetchData">刷新</el-button>
+          </div>
         </div>
       </template>
 

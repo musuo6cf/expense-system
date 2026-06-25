@@ -1,6 +1,6 @@
 # 项目状态报告
 
-> 最后更新：2026-06-24 | 当前版本：v1.6 | 分支：main
+> 最后更新：2026-06-25 | 当前版本：v1.7 | 分支：main
 
 ---
 
@@ -104,6 +104,7 @@ expense-web/src/
 | Payment | GET | /api/payment/pending | 待付款列表 |
 | Payment | GET | /api/payment/{expenseId} | 付款详情（含申请人卡号） |
 | Payment | POST | /api/payment/pay | 确认付款（固定工行转账） |
+| **Export** | **GET** | **/api/expense/export** | **导出报销为 Excel（支持 status 筛选）** |
 
 ### 批量审批规则
 
@@ -182,7 +183,7 @@ npm run dev
 | 2 | 审批记录在 expense/detail 页未展示真实数据 | 中 |
 | 3 | 没有报销单提交后的撤销/撤回功能 | 中 |
 | 4 | 批量审批不处理通过（需人工逐笔审核） | 设计如此 |
-| 5 | Excel 导出 | 低 |
+| 5 | ~~Excel 导出~~ | ✅ 已完成 |
 | 6 | WebSocket 消息推送 | 低 |
 
 ---
@@ -190,6 +191,7 @@ npm run dev
 ## 7. Git 标签历史
 
 ```
+v1.7  Excel export (5 pages: expense list / approval / finance review / payment / paid)
 v1.6  batch finance review / user management / ICBC card
 v1.5  ICBC card / payment simplification / expense items
 v1.4  debug3 (dashboard/profile fixes)
